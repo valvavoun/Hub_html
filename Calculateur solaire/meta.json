@@ -1,6 +1,6 @@
 {
   "name": "Calculateur solaire",
   "desc": "Permet de calculer la meilleure orientation pour avoir été le moins au soleil possible",
-  "tags": ["A11y", "JS"],
-  "status": "live"
+  "tags": ["Solaire", "Calcul", "Orientation"],
+  "status": "dev"
 }

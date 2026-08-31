@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Valvavoun — Index</title>
+<link rel="icon" type="image/png" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
@@ -211,7 +212,7 @@
 <script>
   // ---- À configurer une seule fois ----
   const OWNER  = "valvavoun";
-  const REPO   = "valvavoun.github.io";
+  const REPO   = "Hub_html";
   const BRANCH = "main";
   // Liens externes (autres repos, hors scan automatique) — optionnel
   const externalLinks = [
@@ -228,7 +229,7 @@
   async function loadProjects() {
     let dirs = [];
     try {
-      const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/`);
+      const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/`, { cache: 'no-store' });
       if (!res.ok) throw new Error('api');
       const items = await res.json();
       dirs = items.filter(i => i.type === 'dir' && !i.name.startsWith('.') && !IGNORE.has(i.name));
@@ -238,18 +239,45 @@
     }
 
     const projects = await Promise.all(dirs.map(async d => {
-      let meta = null;
+      // liste le contenu réel du dossier pour trouver le bon fichier HTML
+      let files = [];
       try {
-        const r = await fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${d.name}/meta.json`);
-        if (r.ok) meta = await r.json();
-      } catch (e) { /* pas de meta.json, on retombe sur le nom du dossier */ }
+        const r = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${d.name}`, { cache: 'no-store' });
+        if (r.ok) files = await r.json();
+      } catch (e) { /* dossier illisible, on retombe sur des valeurs par défaut */ }
+
+      const metaFile = files.find(f => f.name.toLowerCase() === 'meta.json');
+      let meta = null;
+      if (metaFile) {
+        try {
+          const r = await fetch(`${metaFile.download_url}?_=${Date.now()}`, { cache: 'no-store' });
+          if (r.ok) meta = await r.json();
+        } catch (e) { /* meta.json illisible */ }
+      }
+
+      const htmlFiles = files.filter(f => f.type === 'file' && f.name.toLowerCase().endsWith('.html'));
+      const indexFile = htmlFiles.find(f => f.name.toLowerCase() === 'index.html');
+
+      let entry = null;
+      let ambiguous = false;
+      if (meta?.entry) {
+        entry = meta.entry;
+      } else if (indexFile) {
+        entry = indexFile.name;
+      } else if (htmlFiles.length === 1) {
+        entry = htmlFiles[0].name;
+      } else if (htmlFiles.length > 1) {
+        entry = htmlFiles[0].name;
+        ambiguous = true; // plusieurs .html trouvés, précise "entry" dans meta.json pour choisir
+      }
 
       return {
         name: meta?.name || humanize(d.name),
         desc: meta?.desc || "Aucune description fournie.",
         tags: meta?.tags || [],
         status: meta?.status === 'live' ? 'live' : 'dev',
-        href: `./${d.name}/`
+        href: entry ? `./${d.name}/${entry}` : `./${d.name}/`,
+        ambiguous
       };
     }));
 
@@ -277,6 +305,7 @@
           <div class="p-head">
             <span class="p-name">${p.name}</span>
             <span class="p-status"><i class="dot ${p.status}"></i>${p.status === 'live' ? 'en ligne' : 'en développement'}</span>
+            ${p.ambiguous ? `<span class="p-status" style="color:var(--amber)">⚠ plusieurs .html — préciser "entry" dans meta.json</span>` : ''}
           </div>
           <div class="p-desc">${p.desc}</div>
           ${p.tags.length ? `<div class="p-tags">${p.tags.map(t => `<span class="p-tag">${t}</span>`).join('')}</div>` : ''}
