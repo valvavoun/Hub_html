@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Multistream</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://embed.twitch.tv/embed/v1.js"></script>
+<style>
+  :root{
+    --stage:#07070a;
+    --panel:#111116;
+    --line:rgba(255,255,255,.09);
+    --text:#f2f1f6;
+    --muted:#8b8b96;
+    --violet:#9146ff;
+    --violet-soft:rgba(145,70,255,.14);
+    --ember:#ff5f5f;
+    --ok:#34d399;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--stage);color:var(--text);font-family:"Inter",system-ui,sans-serif;}
+  body{min-height:100vh;}
+  a{color:inherit;}
+
+  header{
+    display:flex;align-items:center;gap:12px;
+    padding:18px 28px;
+    border-bottom:1px solid var(--line);
+  }
+  header .mark{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:18px;}
+  header .mark span{color:var(--violet);}
+  header .sub{font-size:12.5px;color:var(--muted);}
+
+  #connectPanel{
+    max-width:560px;
+    margin:60px auto;
+    padding:28px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+  }
+  #connectPanel h2{
+    font-family:"Space Grotesk",sans-serif;
+    font-size:18px;margin:0 0 6px;
+  }
+  #connectPanel p{
+    font-size:13.5px;color:var(--muted);line-height:1.6;margin:0 0 18px;
+  }
+  #connectPanel ol{
+    font-size:13px;color:var(--muted);line-height:1.8;
+    margin:0 0 20px;padding-left:20px;
+  }
+  #connectPanel code{
+    background:#0c0c10;border:1px solid var(--line);
+    padding:2px 6px;border-radius:4px;font-size:12px;color:#c9c3ff;
+  }
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;}
+  .field input{
+    width:100%;background:#0c0c10;border:1px solid var(--line);
+    color:var(--text);padding:10px 12px;border-radius:8px;font-size:13.5px;
+    font-family:"Inter",sans-serif;outline:none;
+  }
+  .field input:focus{border-color:var(--violet);}
+  .redirect-box{
+    display:flex;align-items:center;gap:8px;
+    background:#0c0c10;border:1px solid var(--line);border-radius:8px;
+    padding:9px 12px;margin-bottom:18px;
+  }
+  .redirect-box code{background:none;border:none;padding:0;flex:1;overflow-wrap:anywhere;}
+  .redirect-box button{
+    background:transparent;border:1px solid var(--line);color:var(--muted);
+    border-radius:6px;padding:5px 9px;font-size:11.5px;cursor:pointer;white-space:nowrap;
+  }
+  .redirect-box button:hover{border-color:var(--violet);color:var(--text);}
+
+  .btn-primary{
+    background:var(--violet);color:#fff;border:none;
+    padding:11px 20px;border-radius:8px;font-size:13.5px;font-weight:600;
+    font-family:"Inter",sans-serif;cursor:pointer;width:100%;
+    transition:background .15s;
+  }
+  .btn-primary:hover{background:#a565ff;}
+  .btn-primary:disabled{background:#3a3a44;color:var(--muted);cursor:not-allowed;}
+
+  #statusLine{font-size:12.5px;color:var(--ok);margin-top:10px;display:none;}
+
+  #app{display:none;}
+  .columns{
+    display:grid;
+    grid-template-columns:1fr 340px;
+    gap:0;
+    min-height:calc(100vh - 60px);
+  }
+  .browse-col{padding:22px 26px;border-right:1px solid var(--line);}
+  .search-row{display:flex;gap:8px;margin-bottom:18px;}
+  .search-row input{
+    flex:1;background:var(--panel);border:1px solid var(--line);
+    color:var(--text);padding:10px 14px;border-radius:999px;font-size:13.5px;
+    font-family:"Inter",sans-serif;outline:none;
+  }
+  .search-row input:focus{border-color:var(--violet);}
+  .search-row button{
+    background:var(--violet-soft);color:#c9adff;border:1px solid rgba(145,70,255,.35);
+    padding:10px 18px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;
+  }
+  .search-row button:hover{background:rgba(145,70,255,.25);}
+
+  h3.section-title{
+    font-family:"Space Grotesk",sans-serif;font-size:14px;font-weight:600;
+    margin:0 0 12px;color:var(--text);
+  }
+
+  .category-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(120px,1fr));
+    gap:12px;
+  }
+  .category-card{
+    cursor:pointer;background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;overflow:hidden;transition:border-color .15s, transform .1s;
+  }
+  .category-card:hover{border-color:var(--violet);transform:translateY(-2px);}
+  .category-card img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;background:#000;}
+  .category-card .name{
+    font-size:12.5px;padding:8px 9px;line-height:1.3;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+
+  #streamsPanel{margin-top:10px;}
+  .streams-header{
+    display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;
+  }
+  .streams-header button.back{
+    background:transparent;border:1px solid var(--line);color:var(--muted);
+    padding:7px 12px;border-radius:999px;font-size:12.5px;cursor:pointer;
+  }
+  .streams-header button.back:hover{border-color:var(--text);color:var(--text);}
+  .streams-header h3{margin:0;font-family:"Space Grotesk",sans-serif;font-size:15px;flex:1;}
+  .streams-header select{
+    background:var(--panel);border:1px solid var(--line);color:var(--text);
+    padding:7px 10px;border-radius:8px;font-size:12.5px;font-family:"Inter",sans-serif;outline:none;
+  }
+
+  .streams-list{display:flex;flex-direction:column;gap:8px;}
+  .stream-row{
+    display:flex;align-items:center;gap:12px;
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:8px;
+  }
+  .stream-row img{width:96px;height:54px;object-fit:cover;border-radius:6px;background:#000;flex:none;}
+  .stream-row .meta{flex:1;min-width:0;}
+  .stream-row .title{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .stream-row .sub{font-size:12px;color:var(--muted);margin-top:2px;display:flex;gap:8px;align-items:center;}
+  .stream-row .sub .dot{width:6px;height:6px;border-radius:50%;background:var(--ember);display:inline-block;}
+  .stream-row .lang{
+    text-transform:uppercase;font-size:10.5px;border:1px solid var(--line);
+    border-radius:4px;padding:1px 5px;color:var(--muted);
+  }
+  .stream-row button.add{
+    background:var(--violet-soft);color:#c9adff;border:1px solid rgba(145,70,255,.35);
+    padding:7px 12px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;flex:none;
+  }
+  .stream-row button.add.added{background:rgba(52,211,153,.15);color:var(--ok);border-color:rgba(52,211,153,.35);}
+
+  .empty-msg{color:var(--muted);font-size:13px;padding:30px 0;text-align:center;}
+
+  aside.selection-col{padding:22px 22px;display:flex;flex-direction:column;gap:16px;}
+  .manual-add{display:flex;gap:6px;}
+  .manual-add input{
+    flex:1;background:var(--panel);border:1px solid var(--line);color:var(--text);
+    padding:9px 12px;border-radius:8px;font-size:13px;font-family:"Inter",sans-serif;outline:none;
+  }
+  .manual-add button{
+    background:transparent;border:1px solid var(--line);color:var(--muted);
+    padding:9px 13px;border-radius:8px;font-size:12.5px;cursor:pointer;
+  }
+  .manual-add button:hover{border-color:var(--violet);color:var(--text);}
+
+  .selected-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto;}
+  .selected-list li{
+    display:flex;align-items:center;gap:8px;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;
+    padding:7px 8px;cursor:grab;
+  }
+  .selected-list li.dragging{opacity:.4;}
+  .selected-list .grip{color:var(--muted);font-size:12px;flex:none;}
+  .selected-list .name{flex:1;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .selected-list .sound{
+    background:none;border:none;cursor:pointer;font-size:14px;flex:none;color:var(--muted);
+  }
+  .selected-list .sound.active{color:var(--ok);}
+  .selected-list .rm{
+    background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;flex:none;
+  }
+  .selected-list .rm:hover{color:var(--ember);}
+
+  .options{display:flex;flex-direction:column;gap:10px;padding-top:6px;border-top:1px solid var(--line);}
+  .options label{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;}
+  .options input[type=checkbox]{accent-color:var(--violet);width:15px;height:15px;}
+  .options .hint{font-size:11.5px;color:var(--muted);line-height:1.5;margin:0;}
+
+  #launchBtn{margin-top:auto;}
+
+  /* ---- pure viewer mode: nothing but the streams ---- */
+  #viewerGrid{
+    display:none;
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    background:#000;
+    z-index:100;
+  }
+  #viewerGrid.active{display:flex;}
+  #viewerGrid .row{display:flex;flex-direction:row;justify-content:center;}
+  #viewerGrid .cell{position:relative;overflow:hidden;background:#000;flex:0 0 auto;}
+  #viewerGrid .cell > div{width:100%;height:100%;}
+  #viewerGrid .cell iframe{width:100% !important;height:100% !important;border:0;display:block;}
+  body.viewing{overflow:hidden;}
+  body.viewing #shell{display:none;}
+</style>
+</head>
+<body>
+
+<div id="shell">
+  <header>
+    <span class="mark">multi<span>stream</span></span>
+    <span class="sub">— configuration</span>
+  </header>
+
+  <div id="connectPanel">
+    <h2>Connexion à Twitch</h2>
+    <p>Pour parcourir les catégories et streams en direct, une connexion à l'API Twitch est nécessaire. Créez une application gratuite si ce n'est pas déjà fait :</p>
+    <ol>
+      <li>Allez sur <code>dev.twitch.tv/console/apps</code> et créez une application.</li>
+      <li>Dans "OAuth Redirect URLs", collez exactement l'adresse ci-dessous.</li>
+      <li>Copiez le "Client ID" généré et collez-le dans le champ plus bas.</li>
+    </ol>
+    <div class="redirect-box">
+      <code id="redirectUriText"></code>
+      <button id="copyRedirect" type="button">Copier</button>
+    </div>
+    <div class="field">
+      <label for="clientIdInput">Client ID Twitch</label>
+      <input id="clientIdInput" type="text" placeholder="ex : abcd1234efgh5678...">
+    </div>
+    <button class="btn-primary" id="connectBtn">Se connecter à Twitch</button>
+    <div id="statusLine"></div>
+  </div>
+
+  <main id="app">
+    <div class="columns">
+      <div class="browse-col">
+        <div class="search-row">
+          <input id="searchInput" type="text" placeholder="Chercher un jeu ou une catégorie…">
+          <button id="searchBtn" type="button">Chercher</button>
+        </div>
+
+        <h3 class="section-title" id="categoryGridTitle">Catégories populaires</h3>
+        <div class="category-grid" id="categoryGrid"></div>
+
+        <div id="streamsPanel" style="display:none">
+          <div class="streams-header">
+            <button class="back" id="backToCategories" type="button">← Catégories</button>
+            <h3 id="currentCategoryName"></h3>
+            <select id="langFilter">
+              <option value="">Toutes langues</option>
+              <option value="fr">Français</option>
+              <option value="en">English</option>
+              <option value="es">Español</option>
+              <option value="de">Deutsch</option>
+              <option value="pt">Português</option>
+              <option value="it">Italiano</option>
+              <option value="ru">Русский</option>
+              <option value="ko">한국어</option>
+              <option value="ja">日本語</option>
+            </select>
+          </div>
+          <div class="streams-list" id="streamsList"></div>
+        </div>
+      </div>
+
+      <aside class="selection-col">
+        <div class="manual-add">
+          <input id="manualInput" type="text" placeholder="ajouter une chaîne par nom">
+          <button id="manualAddBtn" type="button">Ajouter</button>
+        </div>
+
+        <div>
+          <h3 class="section-title">Sélection (<span id="selCount">0</span>)</h3>
+          <ul class="selected-list" id="selectedList"></ul>
+        </div>
+
+        <div class="options">
+          <label><input type="checkbox" id="optAutoplay" checked> Lecture automatique de tous les streams</label>
+          <label><input type="checkbox" id="optQuality" checked> Qualité maximale sur tous les streams</label>
+          <label for="optPerRow" style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;">
+            Streams par ligne
+            <input type="number" id="optPerRow" min="1" placeholder="auto" style="width:100%;background:#0c0c10;border:1px solid var(--line);color:var(--text);padding:8px 10px;border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+          </label>
+          <p class="hint">Laissez « auto » pour que la taille de chaque stream soit optimisée automatiquement (moins de bandes noires) — ou fixez un nombre pour arranger vous-même les lignes. Un seul stream a le son actif à la fois, cliquez sur 🔈 pour choisir lequel. Glissez les lignes de la sélection pour changer l'ordre. Échap pour revenir ici.</p>
+        </div>
+
+        <button class="btn-primary" id="launchBtn" disabled>Watch</button>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<div id="viewerGrid"></div>
+
+<script>
+(function(){
+  const CLIENT_ID_KEY = 'multistream_twitch_client_id';
+  const TOKEN_KEY = 'multistream_twitch_token';
+
+  const redirectUri = location.origin + location.pathname;
+  document.getElementById('redirectUriText').textContent = redirectUri;
+  document.getElementById('copyRedirect').addEventListener('click', () => {
+    navigator.clipboard.writeText(redirectUri).then(() => {
+      const b = document.getElementById('copyRedirect');
+      b.textContent = 'Copié ✓';
+      setTimeout(() => b.textContent = 'Copier', 1500);
+    });
+  });
+
+  const clientIdInput = document.getElementById('clientIdInput');
+  const savedClientId = localStorage.getItem(CLIENT_ID_KEY);
+  if (savedClientId) clientIdInput.value = savedClientId;
+
+  let clientId = savedClientId || '';
+  let token = localStorage.getItem(TOKEN_KEY) || '';
+
+  // --- OAuth: handle redirect back from Twitch (implicit grant) ---
+  if (location.hash && location.hash.includes('access_token')) {
+    const params = new URLSearchParams(location.hash.slice(1));
+    const t = params.get('access_token');
+    if (t) {
+      token = t;
+      localStorage.setItem(TOKEN_KEY, t);
+      history.replaceState(null, '', location.pathname);
+    }
+  }
+
+  document.getElementById('connectBtn').addEventListener('click', () => {
+    clientId = clientIdInput.value.trim();
+    if (!clientId) { alert('Merci de renseigner votre Client ID Twitch.'); return; }
+    localStorage.setItem(CLIENT_ID_KEY, clientId);
+    const authUrl = 'https://id.twitch.tv/oauth2/authorize'
+      + '?client_id=' + encodeURIComponent(clientId)
+      + '&redirect_uri=' + encodeURIComponent(redirectUri)
+      + '&response_type=token'
+      + '&scope=';
+    location.href = authUrl;
+  });
+
+  async function helix(path) {
+    const res = await fetch('https://api.twitch.tv/helix' + path, {
+      headers: { 'Client-Id': clientId, 'Authorization': 'Bearer ' + token }
+    });
+    if (res.status === 401) {
+      localStorage.removeItem(TOKEN_KEY);
+      token = '';
+      showConnect('Session expirée — reconnectez-vous.');
+      throw new Error('401');
+    }
+    if (!res.ok) throw new Error('helix error ' + res.status);
+    return res.json();
+  }
+
+  function showConnect(msg) {
+    document.getElementById('connectPanel').style.display = 'block';
+    document.getElementById('app').style.display = 'none';
+    const s = document.getElementById('statusLine');
+    if (msg) { s.textContent = msg; s.style.color = 'var(--ember)'; s.style.display = 'block'; }
+  }
+
+  function showApp() {
+    document.getElementById('connectPanel').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  }
+
+  // --- selection state ---
+  let selected = []; // {login, name}
+  let unmutedLogin = null;
+
+  function isSelected(login) {
+    return selected.some(s => s.login === login);
+  }
+
+  function addChannel(login, name) {
+    login = login.toLowerCase();
+    if (!login || isSelected(login)) return;
+    selected.push({ login, name: name || login });
+    if (unmutedLogin === null) unmutedLogin = login;
+    renderSelected();
+  }
+
+  function removeChannel(login) {
+    selected = selected.filter(s => s.login !== login);
+    if (unmutedLogin === login) unmutedLogin = selected.length ? selected[0].login : null;
+    renderSelected();
+    document.querySelectorAll('.stream-row button.add').forEach(btn => {
+      if (btn.dataset.login === login) { btn.textContent = 'Ajouter'; btn.classList.remove('added'); }
+    });
+  }
+
+  function renderSelected() {
+    const list = document.getElementById('selectedList');
+    list.innerHTML = '';
+    selected.forEach((s) => {
+      const li = document.createElement('li');
+      li.draggable = true;
+      li.dataset.login = s.login;
+
+      const grip = document.createElement('span');
+      grip.className = 'grip';
+      grip.textContent = '⠿';
+      li.appendChild(grip);
+
+      const name = document.createElement('span');
+      name.className = 'name';
+      name.textContent = s.name;
+      li.appendChild(name);
+
+      const sound = document.createElement('button');
+      sound.className = 'sound' + (unmutedLogin === s.login ? ' active' : '');
+      sound.textContent = unmutedLogin === s.login ? '🔊' : '🔈';
+      sound.title = 'Rendre le son actif sur ce stream';
+      sound.addEventListener('click', () => { unmutedLogin = s.login; renderSelected(); });
+      li.appendChild(sound);
+
+      const rm = document.createElement('button');
+      rm.className = 'rm';
+      rm.textContent = '✕';
+      rm.addEventListener('click', () => removeChannel(s.login));
+      li.appendChild(rm);
+
+      li.addEventListener('dragstart', () => li.classList.add('dragging'));
+      li.addEventListener('dragend', () => li.classList.remove('dragging'));
+      li.addEventListener('dragover', e => {
+        e.preventDefault();
+        const dragging = list.querySelector('.dragging');
+        if (!dragging || dragging === li) return;
+        const rect = li.getBoundingClientRect();
+        const before = (e.clientY - rect.top) < rect.height / 2;
+        list.insertBefore(dragging, before ? li : li.nextSibling);
+      });
+      li.addEventListener('drop', () => {
+        const order = [...list.querySelectorAll('li')].map(el => el.dataset.login);
+        selected.sort((a, b) => order.indexOf(a.login) - order.indexOf(b.login));
+      });
+
+      list.appendChild(li);
+    });
+    document.getElementById('selCount').textContent = selected.length;
+    document.getElementById('launchBtn').disabled = selected.length === 0;
+  }
+
+  document.getElementById('manualAddBtn').addEventListener('click', () => {
+    const input = document.getElementById('manualInput');
+    const raw = input.value.trim().toLowerCase().replace(/^https?:\/\/(www\.)?twitch\.tv\//, '').replace(/[^a-z0-9_]/g, '');
+    if (raw) { addChannel(raw, raw); input.value = ''; }
+  });
+  document.getElementById('manualInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('manualAddBtn').click();
+  });
+
+  // --- category browsing ---
+  const categoryGrid = document.getElementById('categoryGrid');
+  const streamsPanel = document.getElementById('streamsPanel');
+  const streamsList = document.getElementById('streamsList');
+  const currentCategoryName = document.getElementById('currentCategoryName');
+  const langFilter = document.getElementById('langFilter');
+  let activeGameId = null;
+
+  function renderCategories(games, title) {
+    document.getElementById('categoryGridTitle').textContent = title;
+    categoryGrid.style.display = 'grid';
+    streamsPanel.style.display = 'none';
+    categoryGrid.innerHTML = '';
+    if (!games.length) {
+      categoryGrid.innerHTML = '<div class="empty-msg">Aucun résultat.</div>';
+      return;
+    }
+    games.forEach(g => {
+      const card = document.createElement('div');
+      card.className = 'category-card';
+      const img = document.createElement('img');
+      img.src = g.box_art_url.replace('{width}', '188').replace('{height}', '250');
+      img.alt = g.name;
+      card.appendChild(img);
+      const name = document.createElement('div');
+      name.className = 'name';
+      name.textContent = g.name;
+      card.appendChild(name);
+      card.addEventListener('click', () => openCategory(g.id, g.name));
+      categoryGrid.appendChild(card);
+    });
+  }
+
+  async function loadTopGames() {
+    try {
+      const data = await helix('/games/top?first=16');
+      renderCategories(data.data, 'Catégories populaires');
+    } catch (e) { console.error(e); }
+  }
+
+  async function searchCategories(query) {
+    try {
+      const data = await helix('/search/categories?query=' + encodeURIComponent(query) + '&first=16');
+      renderCategories(data.data, 'Résultats pour « ' + query + ' »');
+    } catch (e) { console.error(e); }
+  }
+
+  async function openCategory(gameId, name) {
+    activeGameId = gameId;
+    currentCategoryName.textContent = name;
+    categoryGrid.style.display = 'none';
+    streamsPanel.style.display = 'block';
+    await loadStreams();
+  }
+
+  async function loadStreams() {
+    streamsList.innerHTML = '<div class="empty-msg">Chargement…</div>';
+    try {
+      let path = '/streams?first=30&game_id=' + encodeURIComponent(activeGameId);
+      if (langFilter.value) path += '&language=' + encodeURIComponent(langFilter.value);
+      const data = await helix(path);
+      renderStreams(data.data);
+    } catch (e) { console.error(e); streamsList.innerHTML = '<div class="empty-msg">Erreur de chargement.</div>'; }
+  }
+
+  function renderStreams(streams) {
+    streamsList.innerHTML = '';
+    if (!streams.length) {
+      streamsList.innerHTML = '<div class="empty-msg">Aucun stream en direct pour ce filtre.</div>';
+      return;
+    }
+    streams.forEach(s => {
+      const row = document.createElement('div');
+      row.className = 'stream-row';
+
+      const img = document.createElement('img');
+      img.src = s.thumbnail_url.replace('{width}', '160').replace('{height}', '90');
+      img.alt = s.user_name;
+      row.appendChild(img);
+
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      const title = document.createElement('div');
+      title.className = 'title';
+      title.textContent = s.user_name + ' — ' + s.title;
+      meta.appendChild(title);
+      const sub = document.createElement('div');
+      sub.className = 'sub';
+      sub.innerHTML = '<span class="dot"></span>' + s.viewer_count.toLocaleString('fr-FR') + ' spectateurs · <span class="lang">' + s.language + '</span>';
+      meta.appendChild(sub);
+      row.appendChild(meta);
+
+      const addBtn = document.createElement('button');
+      addBtn.className = 'add' + (isSelected(s.user_login) ? ' added' : '');
+      addBtn.textContent = isSelected(s.user_login) ? '✓ Ajouté' : 'Ajouter';
+      addBtn.dataset.login = s.user_login;
+      addBtn.addEventListener('click', () => {
+        if (isSelected(s.user_login)) {
+          removeChannel(s.user_login);
+        } else {
+          addChannel(s.user_login, s.user_name);
+          addBtn.textContent = '✓ Ajouté';
+          addBtn.classList.add('added');
+        }
+      });
+      row.appendChild(addBtn);
+
+      streamsList.appendChild(row);
+    });
+  }
+
+  document.getElementById('searchBtn').addEventListener('click', () => {
+    const q = document.getElementById('searchInput').value.trim();
+    if (q) searchCategories(q);
+  });
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('searchBtn').click();
+  });
+  document.getElementById('backToCategories').addEventListener('click', () => {
+    categoryGrid.style.display = 'grid';
+    streamsPanel.style.display = 'none';
+  });
+  langFilter.addEventListener('change', () => { if (activeGameId) loadStreams(); });
+
+  // --- watch mode: same page, pure fullscreen grid, nothing else ---
+  const viewerGrid = document.getElementById('viewerGrid');
+  let activePlayers = [];
+  let viewerChannelCount = 0;
+
+  // Splits n tiles (same 16:9 aspect ratio) into rows so every row fills
+  // the full width edge-to-edge, then picks the row split that leaves the
+  // least leftover space top/bottom or side/side for the current viewport.
+  // If maxPerRow is set, that split is used directly instead of searched.
+  function computeJustifiedRows(n, W, H, maxPerRow) {
+    function rowsForSplit(rowsK) {
+      let totalH = 0;
+      rowsK.forEach(k => { totalH += (W / k) * (9 / 16); });
+      let scale, wasted;
+      if (totalH <= H) { scale = 1; wasted = W * (H - totalH); }
+      else { scale = H / totalH; wasted = W * H * (1 - scale); }
+      return { rowsK, scale, wasted };
+    }
+
+    if (maxPerRow && maxPerRow > 0) {
+      const rowsK = [];
+      let remaining = n;
+      while (remaining > 0) {
+        const k = Math.min(maxPerRow, remaining);
+        rowsK.push(k);
+        remaining -= k;
+      }
+      return rowsForSplit(rowsK);
+    }
+
+    let best = null;
+    for (let r = 1; r <= n; r++) {
+      const base = Math.floor(n / r), extra = n % r;
+      const rowsK = [];
+      for (let i = 0; i < r; i++) rowsK.push(base + (i < extra ? 1 : 0));
+      const candidate = rowsForSplit(rowsK);
+      if (!best || candidate.wasted < best.wasted) best = candidate;
+    }
+    return best;
+  }
+
+  function applyViewerSizing() {
+    if (!viewerChannelCount) return;
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    const perRowInput = parseInt(document.getElementById('optPerRow').value, 10);
+    const maxPerRow = perRowInput > 0 ? perRowInput : null;
+    const { rowsK, scale } = computeJustifiedRows(viewerChannelCount, W, H, maxPerRow);
+
+    const rowEls = [...viewerGrid.querySelectorAll('.row')];
+    let idx = 0;
+    rowsK.forEach((k, rowIndex) => {
+      const tileW = Math.floor((W / k) * scale);
+      const tileH = Math.floor(tileW * 9 / 16);
+      for (let i = 0; i < k; i++) {
+        const cell = rowEls[rowIndex] && rowEls[rowIndex].children[i];
+        if (cell) { cell.style.width = tileW + 'px'; cell.style.height = tileH + 'px'; }
+        idx++;
+      }
+    });
+  }
+
+  function enterViewer() {
+    if (!selected.length) return;
+    const autoplay = document.getElementById('optAutoplay').checked;
+    const maxQuality = document.getElementById('optQuality').checked;
+    const unmuted = unmutedLogin || selected[0].login;
+    const perRowInput = parseInt(document.getElementById('optPerRow').value, 10);
+    const maxPerRow = perRowInput > 0 ? perRowInput : null;
+
+    const parents = ['claude.ai','claude.site','claudeusercontent.com','localhost'];
+    const currentHost = location.hostname;
+    if (currentHost && !parents.includes(currentHost)) parents.push(currentHost);
+
+    const { rowsK } = computeJustifiedRows(selected.length, window.innerWidth, window.innerHeight, maxPerRow);
+
+    viewerGrid.innerHTML = '';
+    activePlayers = [];
+    viewerChannelCount = selected.length;
+
+    let idx = 0;
+    rowsK.forEach(k => {
+      const rowEl = document.createElement('div');
+      rowEl.className = 'row';
+      for (let i = 0; i < k; i++) {
+        const s = selected[idx];
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        const target = document.createElement('div');
+        const targetId = 'watch-player-' + idx;
+        target.id = targetId;
+        cell.appendChild(target);
+        rowEl.appendChild(cell);
+
+        const player = new Twitch.Player(targetId, {
+          width: '100%',
+          height: '100%',
+          channel: s.login,
+          parent: parents,
+          autoplay: autoplay,
+          muted: s.login !== unmuted
+        });
+        if (maxQuality) {
+          player.addEventListener(Twitch.Player.READY, () => {
+            try { player.setQuality('chunked'); } catch (e) {}
+          });
+        }
+        activePlayers.push(player);
+        idx++;
+      }
+      viewerGrid.appendChild(rowEl);
+    });
+
+    document.body.classList.add('viewing');
+    viewerGrid.classList.add('active');
+    applyViewerSizing();
+
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+  }
+
+  function exitViewer() {
+    document.body.classList.remove('viewing');
+    viewerGrid.classList.remove('active');
+    viewerGrid.innerHTML = '';
+    activePlayers = [];
+    viewerChannelCount = 0;
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    }
+  }
+
+  document.getElementById('launchBtn').addEventListener('click', enterViewer);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.body.classList.contains('viewing')) exitViewer();
+  });
+
+  window.addEventListener('resize', () => {
+    if (document.body.classList.contains('viewing')) applyViewerSizing();
+  });
+
+  // --- init ---
+  if (token && clientId) {
+    showApp();
+    loadTopGames();
+  } else if (token && !clientId) {
+    showConnect('Renseignez à nouveau votre Client ID pour continuer.');
+  } else {
+    showConnect();
+  }
+})();
+</script>
+
+</body>
+</html>

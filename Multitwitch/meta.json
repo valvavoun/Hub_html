@@ -1,0 +1,6 @@
+{
+  "name": "Multitwitch",
+  "desc": "Permet de regarder plusieurs streams Twitch en même temps",
+  "tags": ["A11y", "JS"],
+  "status": "live"
+}

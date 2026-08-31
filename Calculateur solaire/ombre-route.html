@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Ombre Route — Orientation anti-soleil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#141922;
+    --bg-surface:#1D2530;
+    --bg-surface-2:#252F3C;
+    --line:#31404F;
+    --text:#F4EFE4;
+    --text-muted:#8FA0B3;
+    --sun:#F2A93B;
+    --sun-dim:#8A6A2E;
+    --shade:#5FB8AC;
+    --hot:#E8734A;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #202B3A 0%, var(--bg-deep) 55%);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    padding:20px 16px 60px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:480px;margin:0 auto;}
+
+  header{margin-bottom:22px;}
+  .mark{
+    display:flex;align-items:center;gap:10px;margin-bottom:6px;
+  }
+  .mark svg{flex-shrink:0;}
+  h1{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:34px;
+    letter-spacing:1.5px;
+    margin:0;
+    line-height:0.9;
+    color:var(--text);
+  }
+  .tagline{color:var(--text-muted);font-size:14.5px;line-height:1.5;margin:8px 0 0;}
+
+  .card{
+    background:var(--bg-surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px;
+    margin-bottom:14px;
+  }
+  .card h2{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:15px;
+    letter-spacing:1.8px;
+    text-transform:uppercase;
+    color:var(--sun);
+    margin:0 0 14px;
+  }
+  .step-num{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:20px;height:20px;border-radius:50%;
+    background:var(--sun);color:#20160A;
+    font-family:'Inter';font-weight:800;font-size:11px;
+    margin-right:8px;vertical-align:2px;
+  }
+
+  label{display:block;font-size:13px;color:var(--text-muted);margin-bottom:6px;font-weight:500;}
+  input[type=date], input[type=number], input[type=text], select{
+    width:100%;
+    background:var(--bg-surface-2);
+    border:1px solid var(--line);
+    color:var(--text);
+    border-radius:10px;
+    padding:11px 12px;
+    font-size:15px;
+    font-family:'Inter';
+    margin-bottom:12px;
+  }
+  input:focus, select:focus, button:focus-visible{
+    outline:2px solid var(--sun); outline-offset:1px;
+  }
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+  .btn{
+    width:100%;
+    border:none;border-radius:12px;
+    padding:14px 16px;
+    font-family:'Inter';font-weight:700;font-size:15px;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .btn-loc{
+    background:var(--bg-surface-2);
+    color:var(--text);
+    border:1px solid var(--line);
+    margin-bottom:10px;
+  }
+  .btn-loc:active{background:var(--line);}
+  .btn-main{
+    background:linear-gradient(180deg,#F5B84F,#E89A2A);
+    color:#211405;
+    font-size:16.5px;
+    padding:16px;
+    box-shadow:0 6px 18px rgba(232,154,42,0.28);
+  }
+  .btn-main:active{filter:brightness(0.95);}
+  .status{font-size:12.5px;color:var(--text-muted);margin-top:-2px;margin-bottom:10px;min-height:16px;}
+  .status.ok{color:var(--shade);}
+  .status.err{color:var(--hot);}
+
+  .glazing-row{
+    display:grid;grid-template-columns:1fr 1fr;
+    gap:10px 12px;
+  }
+  .glazing-row .full{grid-column:1/3;}
+  .hint{font-size:12px;color:var(--text-muted);margin:-6px 0 14px;line-height:1.4;}
+
+  details summary{
+    cursor:pointer;color:var(--text-muted);font-size:13px;
+    margin-bottom:4px; list-style:none;
+  }
+  details summary::-webkit-details-marker{display:none;}
+  details summary:before{content:"▸ ";color:var(--sun);}
+  details[open] summary:before{content:"▾ ";}
+
+  #results{display:none;}
+  .compass-box{
+    display:flex;justify-content:center;margin:6px 0 16px;
+  }
+  .headline{
+    text-align:center;
+    font-family:'Bebas Neue';
+    font-size:26px;
+    letter-spacing:0.5px;
+    line-height:1.15;
+    margin:0 0 4px;
+  }
+  .headline .deg{color:var(--sun);}
+  .subline{text-align:center;color:var(--text-muted);font-size:13.5px;margin:0 0 18px;}
+
+  .faces{display:flex;flex-direction:column;gap:8px;margin-bottom:6px;}
+  .face-row{
+    display:flex;align-items:center;gap:10px;
+  }
+  .face-label{width:64px;font-size:12.5px;color:var(--text-muted);flex-shrink:0;}
+  .face-label.sm{width:44px;font-size:11px;}
+  .face-bar-bg.sm{height:6px;}
+  .face-row.sm{margin-bottom:5px;}
+  .face-bar-bg{
+    flex:1;height:10px;background:var(--bg-surface-2);
+    border-radius:6px;overflow:hidden;border:1px solid var(--line);
+  }
+  .face-bar{height:100%;border-radius:6px;}
+  .face-pct{width:38px;text-align:right;font-size:12px;color:var(--text-muted);flex-shrink:0;}
+
+  table.days{width:100%;border-collapse:collapse;margin-top:14px;font-size:12.5px;}
+  table.days th{
+    text-align:left;color:var(--text-muted);font-weight:600;
+    padding:6px 4px;border-bottom:1px solid var(--line);font-size:11px;
+    text-transform:uppercase;letter-spacing:0.4px;
+  }
+  table.days td{padding:7px 4px;border-bottom:1px solid var(--line);}
+  table.days tr:last-child td{border-bottom:none;}
+
+  #daysList{margin-top:12px;}
+  .day-block{padding:8px 0;border-bottom:1px solid var(--line);}
+  .day-block:last-child{border-bottom:none;}
+  .day-head{font-size:13px;color:var(--text);font-weight:600;}
+  .day-faces{font-size:12px;color:var(--text-muted);margin-top:2px;}
+
+  .note{
+    font-size:12px;color:var(--text-muted);line-height:1.55;
+    margin-top:16px;padding-top:14px;border-top:1px dashed var(--line);
+  }
+  footer{text-align:center;color:var(--text-muted);font-size:11.5px;margin-top:22px;opacity:0.7;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="mark">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+        <circle cx="17" cy="17" r="7" fill="#F2A93B"/>
+        <g stroke="#F2A93B" stroke-width="2" stroke-linecap="round">
+          <line x1="17" y1="1" x2="17" y2="6"/>
+          <line x1="17" y1="28" x2="17" y2="33"/>
+          <line x1="1" y1="17" x2="6" y2="17"/>
+          <line x1="28" y1="17" x2="33" y2="17"/>
+        </g>
+      </svg>
+      <h1>OMBRE&nbsp;ROUTE</h1>
+    </div>
+  </header>
+
+  <!-- STEP 1: LOCATION -->
+  <div class="card">
+    <h2><span class="step-num">1</span>Position</h2>
+    <label for="placeSearch">Ville / adresse / lieu-dit</label>
+    <div class="row2" style="grid-template-columns:1fr auto;">
+      <input type="text" id="placeSearch" placeholder="ex. Camping du Lac, Vensac">
+      <button class="btn btn-loc" id="btnSearch" style="width:auto;padding:11px 16px;margin-bottom:12px;">🔎</button>
+    </div>
+    <div class="status" id="searchStatus"></div>
+  </div>
+
+  <!-- STEP 2: STAY -->
+  <div class="card">
+    <h2><span class="step-num">2</span>Durée de l'étape</h2>
+    <div class="row2">
+      <div>
+        <label for="startDate">Arrivée</label>
+        <input type="date" id="startDate">
+      </div>
+      <div>
+        <label for="nights">Nombre de nuits</label>
+        <input type="number" id="nights" min="1" max="30" value="3">
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: VEHICLE GLAZING -->
+  <div class="card">
+    <h2><span class="step-num">3</span>Vitrage du véhicule</h2>
+
+    <label for="modelSelect">Modèle du camping-car</label>
+    <select id="modelSelect">
+      <option value="">— Choisir dans la liste —</option>
+      <option value="chausson711">Chausson 711 / Welcome Travel Line</option>
+      <option value="profile_generic">Profilé classique (fenêtres 1 côté)</option>
+      <option value="fourgon_generic">Fourgon aménagé (peu de vitrage latéral)</option>
+      <option value="capucine_generic">Capucine (grand pare-brise + capucine)</option>
+    </select>
+    <p class="status ok" id="modelStatus" style="min-height:14px;"></p>
+  </div>
+
+  <!-- STEP 4: PARKING CONSTRAINT -->
+  <div class="card">
+    <h2><span class="step-num">4</span>Contrainte de stationnement</h2>
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:4px;">
+      <input type="checkbox" id="fixedAngle" style="width:18px;height:18px;margin:0;flex-shrink:0;">
+      <span style="font-size:13.5px;color:var(--text);">Emplacement imposé (je ne peux me garer que tous les 90°, comme sur la plupart des parkings)</span>
+    </label>
+    <div id="offsetBlock" style="display:none;margin-top:12px;">
+      <label for="rowOffset">Angle des places par rapport au Nord (0 = places alignées Nord-Sud/Est-Ouest)</label>
+      <input type="number" id="rowOffset" min="0" max="89" value="0">
+    </div>
+  </div>
+
+  <!-- STEP 5: TIME WEIGHTING -->
+  <div class="card">
+    <h2><span class="step-num">5</span>Pondération horaire</h2>
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:4px;">
+      <input type="checkbox" id="timeWeight" style="width:18px;height:18px;margin:0;flex-shrink:0;">
+      <span style="font-size:13.5px;color:var(--text);">Donner plus de poids aux moments où je suis présent dans le camping-car</span>
+    </label>
+    <div id="presenceBlock" style="display:none;margin-top:12px;">
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input type="checkbox" id="presMatin" checked style="width:16px;height:16px;margin:0;flex-shrink:0;">
+          <span style="font-size:13px;">Matin (5h–11h)</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input type="checkbox" id="presMidi" checked style="width:16px;height:16px;margin:0;flex-shrink:0;">
+          <span style="font-size:13px;">Midi (11h–14h)</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input type="checkbox" id="presApresMidi" checked style="width:16px;height:16px;margin:0;flex-shrink:0;">
+          <span style="font-size:13px;">Après-midi (14h–18h)</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input type="checkbox" id="presSoir" checked style="width:16px;height:16px;margin:0;flex-shrink:0;">
+          <span style="font-size:13px;">Soir (18h–23h)</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn btn-main" id="btnCalc">☀️ Calculer l'orientation la plus fraîche</button>
+
+  <!-- RESULTS -->
+  <div class="card" id="results">
+    <h2>Résultat</h2>
+    <div class="compass-box"><svg id="compass" width="240" height="240" viewBox="0 0 240 240"></svg></div>
+    <p class="headline" id="headline"></p>
+    <p class="subline" id="roundedLine" style="margin-top:-4px;"></p>
+    <p class="subline" id="subline"></p>
+    <p class="subline" id="gainLine" style="color:var(--shade);font-weight:600;margin-top:-10px;"></p>
+
+    <div id="rankingBlock" style="display:none;margin-bottom:16px;">
+      <p class="hint" style="margin:0 0 8px;color:var(--text-muted);">Alternatives par ordre de préférence :</p>
+      <div id="rankingList"></div>
+    </div>
+
+    <div class="faces" id="faces"></div>
+
+    <details>
+      <summary>Détail jour par jour</summary>
+      <div id="daysList"></div>
+    </details>
+
+    <p class="note" id="note"></p>
+  </div>
+
+</div>
+
+<script>
+/* ---------- Astronomie solaire (NOAA, formules publiques) ---------- */
+function toRad(d){return d*Math.PI/180;}
+function toDeg(r){return r*180/Math.PI;}
+
+function dayOfYear(date){
+  const start = new Date(date.getFullYear(),0,1);
+  const diff = (date - start) + (start.getTimezoneOffset()-date.getTimezoneOffset())*60000;
+  return Math.floor(diff/86400000)+1;
+}
+
+function solarGamma(date, hourDecimal){
+  const n = dayOfYear(date);
+  return 2*Math.PI/365*(n-1+(hourDecimal-12)/24);
+}
+
+function eqTimeAndDecl(gamma){
+  const eqtime = 229.18*(0.000075 + 0.001868*Math.cos(gamma) - 0.032077*Math.sin(gamma)
+    - 0.014615*Math.cos(2*gamma) - 0.040849*Math.sin(2*gamma));
+  const decl = 0.006918 - 0.399912*Math.cos(gamma) + 0.070257*Math.sin(gamma)
+    - 0.006758*Math.cos(2*gamma) + 0.000907*Math.sin(2*gamma)
+    - 0.002697*Math.cos(3*gamma) + 0.00148*Math.sin(3*gamma);
+  return {eqtime, decl};
+}
+
+// date = objet Date représentant l'heure LOCALE (jour/mois/année/heure/minute)
+function solarPosition(date, lat, lon){
+  const hourDecimal = date.getHours() + date.getMinutes()/60;
+  const gamma = solarGamma(date, hourDecimal);
+  const {eqtime, decl} = eqTimeAndDecl(gamma);
+
+  const tzOffsetHours = -date.getTimezoneOffset()/60;
+  const timeOffset = eqtime + 4*lon - 60*tzOffsetHours;
+  let trueSolarTime = hourDecimal*60 + timeOffset;
+  trueSolarTime = ((trueSolarTime % 1440)+1440)%1440;
+
+  const hourAngle = trueSolarTime/4 - 180;
+  const latR = toRad(lat);
+  const zenithR = Math.acos(
+    Math.max(-1,Math.min(1,
+      Math.sin(latR)*Math.sin(decl) + Math.cos(latR)*Math.cos(decl)*Math.cos(toRad(hourAngle))
+    ))
+  );
+  const elevation = 90 - toDeg(zenithR);
+
+  let cosAz = (Math.sin(latR)*Math.cos(zenithR) - Math.sin(decl)) / (Math.cos(latR)*Math.sin(zenithR));
+  cosAz = Math.max(-1, Math.min(1, cosAz));
+  let azimuth;
+  if (hourAngle > 0){
+    azimuth = (toDeg(Math.acos(cosAz)) + 180) % 360;
+  } else {
+    azimuth = (540 - toDeg(Math.acos(cosAz))) % 360;
+  }
+  return {elevation, azimuth};
+}
+
+function sunTimes(dateAtNoon, lat, lon){
+  const gamma = solarGamma(dateAtNoon, 12);
+  const {eqtime, decl} = eqTimeAndDecl(gamma);
+  const latR = toRad(lat);
+  let cosH = -Math.tan(latR)*Math.tan(decl);
+  const polar = cosH > 1 ? 'nuit' : (cosH < -1 ? 'jour' : null);
+  cosH = Math.max(-1,Math.min(1,cosH));
+  const haSunrise = toDeg(Math.acos(cosH));
+  const tzOffsetHours = -dateAtNoon.getTimezoneOffset()/60;
+  const solarNoonMin = 720 - 4*lon - eqtime + 60*tzOffsetHours;
+  const sunriseMin = solarNoonMin - haSunrise*4;
+  const sunsetMin = solarNoonMin + haSunrise*4;
+  const maxElev = 90 - Math.abs(lat - toDeg(decl));
+  return {sunriseMin, sunsetMin, polar, maxElev};
+}
+
+function fmtMin(min){
+  min = ((min%1440)+1440)%1440;
+  const h = Math.floor(min/60), m = Math.round(min%60);
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+}
+
+/* ---------- Optimisation de l'orientation ---------- */
+function getPeriod(hourDecimal){
+  if(hourDecimal>=5 && hourDecimal<11) return 'matin';
+  if(hourDecimal>=11 && hourDecimal<14) return 'midi';
+  if(hourDecimal>=14 && hourDecimal<18) return 'apresMidi';
+  if(hourDecimal>=18 && hourDecimal<23) return 'soir';
+  return 'nuit';
+}
+
+function buildSamples(days, lat, lon, presence){
+  const ABSENT_WEIGHT = 0.3;
+  const samples = [];
+  days.forEach((day, dayIndex)=>{
+    for(let h=0; h<24; h+=1/3){ // pas de 20 min
+      const hh=Math.floor(h), mm=Math.round((h-hh)*60);
+      const dd = new Date(day.getFullYear(),day.getMonth(),day.getDate(),hh,mm,0);
+      const r = solarPosition(dd, lat, lon);
+      if(r.elevation>0){
+        const elR = toRad(r.elevation);
+        let intensity = Math.sin(elR)*Math.cos(elR);
+        if(presence){
+          const period = getPeriod(h);
+          const present = period==='nuit' ? false : presence[period];
+          intensity *= present ? 1 : ABSENT_WEIGHT;
+        }
+        samples.push({az:r.azimuth, intensity, dayIndex});
+      }
+    }
+  });
+  return samples;
+}
+
+function faceLoadForTheta(samples, weights, theta){
+  const faces = {
+    avant: theta,
+    droite: (theta+90)%360,
+    arriere: (theta+180)%360,
+    gauche: (theta+270)%360
+  };
+  let load=0;
+  const faceLoad = {avant:0,droite:0,arriere:0,gauche:0};
+  for(const s of samples){
+    for(const f in faces){
+      const diff = toRad(s.az - faces[f]);
+      const cosInc = Math.cos(diff);
+      if(cosInc>0){
+        const c = weights[f]*s.intensity*cosInc;
+        load += c;
+        faceLoad[f]+=c;
+      }
+    }
+  }
+  return {theta, load, faceLoad};
+}
+
+function computeExposure(days, lat, lon, weights, candidateThetas, presence){
+  const samples = buildSamples(days, lat, lon, presence);
+  const results = candidateThetas.map(theta => faceLoadForTheta(samples, weights, theta));
+  results.sort((a,b)=>a.load-b.load);
+  return {ranking: results, samples}; // ranking classé du meilleur (moins exposé) au pire
+}
+
+/* ---------- UI ---------- */
+const $ = id => document.getElementById(id);
+
+$('startDate').valueAsDate = new Date();
+
+/* ---------- Base de modèles connus ----------
+   Valeurs de vitrage 0=Aucune 1=Faible 2=Moyenne 3=Forte, par face.
+   "Avant" = pare-brise/cabine, Droite/Gauche = par rapport au sens de marche, Arrière = panneau arrière. */
+const VEHICLE_MODELS = {
+  chausson711: {
+    label: 'Chausson 711 / Welcome Travel Line',
+    note: "Réglé sur le vitrage réel déclaré : pare-brise avant, côté droit le plus vitré (2 grandes fenêtres + petite + 2 vitres de porte), côté gauche un peu moins vitré (1 grande + 2 petites + 2 vitres de porte), grande baie arrière. Les 3 lanterneaux de toit ne sont pas concernés par l'orientation (ils reçoivent le soleil selon sa hauteur, pas selon le sens du véhicule) — pensez à des caches réfléchissants pour ceux-ci.",
+    g: {avant:3, droite:3, gauche:2, arriere:3}
+  },
+  profile_generic: {
+    label: 'Profilé classique',
+    note: "Grand pare-brise + capucine à l'avant, fenêtres coulissantes côté porte (généralement le côté droit), peu ou pas de vitrage côté opposé et arrière.",
+    g: {avant:3, droite:2, gauche:1, arriere:1}
+  },
+  fourgon_generic: {
+    label: 'Fourgon aménagé',
+    note: "Pare-brise cabine, quelques petites fenêtres latérales, souvent un hublot ou aucune vitre à l'arrière.",
+    g: {avant:2, droite:1, gauche:1, arriere:0}
+  },
+  capucine_generic: {
+    label: 'Capucine',
+    note: "Très grand pare-brise + vitrage de la capucine au-dessus de la cabine, fenêtres côté porte, arrière souvent aveugle ou petit hublot.",
+    g: {avant:3, droite:2, gauche:1, arriere:0}
+  }
+};
+
+let currentGlazing = {avant:0, droite:0, gauche:0, arriere:0};
+
+$('modelSelect').addEventListener('change', (e)=>{
+  const key = e.target.value;
+  const status = $('modelStatus');
+  if(!key){ status.textContent=''; currentGlazing = {avant:0, droite:0, gauche:0, arriere:0}; return; }
+  const m = VEHICLE_MODELS[key];
+  currentGlazing = {avant:m.g.avant, droite:m.g.droite, gauche:m.g.gauche, arriere:m.g.arriere};
+  status.textContent = '✓ ' + m.label + ' sélectionné';
+});
+
+$('fixedAngle').addEventListener('change', e=>{
+  $('offsetBlock').style.display = e.target.checked ? 'block' : 'none';
+});
+$('timeWeight').addEventListener('change', e=>{
+  $('presenceBlock').style.display = e.target.checked ? 'block' : 'none';
+});
+
+async function searchPlace(){
+  const q = $('placeSearch').value.trim();
+  const status = $('searchStatus');
+  if(!q){
+    status.textContent = "Tape un nom de ville, une adresse ou un lieu-dit.";
+    status.className = 'status err';
+    return;
+  }
+  status.textContent = 'Recherche en cours…';
+  status.className = 'status';
+  try{
+    const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=fr&q=' + encodeURIComponent(q);
+    const res = await fetch(url, {headers:{'Accept':'application/json'}});
+    if(!res.ok) throw new Error('reseau');
+    const data = await res.json();
+    if(!data || data.length===0){
+      status.textContent = "Aucun lieu trouvé pour « " + q + " ». Essaie avec plus de détails (ville + pays).";
+      status.className = 'status err';
+      return;
+    }
+    currentLat = parseFloat(data[0].lat);
+    currentLon = parseFloat(data[0].lon);
+    currentPlaceLabel = data[0].display_name;
+    status.textContent = '✓ ' + data[0].display_name;
+    status.className = 'status ok';
+  }catch(e){
+    status.textContent = "Recherche impossible (pas de connexion internet ?). Réessaie quand tu as du réseau.";
+    status.className = 'status err';
+  }
+}
+$('btnSearch').addEventListener('click', searchPlace);
+$('placeSearch').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); searchPlace(); } });
+
+function compassPointFR(deg){
+  const dirs = ['Nord','Nord-Est','Est','Sud-Est','Sud','Sud-Ouest','Ouest','Nord-Ouest'];
+  return dirs[Math.round(((deg%360)+360)%360/45)%8];
+}
+
+function drawCompass(svg, sunResultantAz, heading, faceLoad, maxFaceLoad){
+  const ns='http://www.w3.org/2000/svg';
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  const cx=120, cy=120, R=95;
+
+  function el(tag, attrs){
+    const e = document.createElementNS(ns, tag);
+    for(const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  svg.appendChild(el('circle',{cx,cy,r:R,fill:'#1A2230',stroke:'#31404F','stroke-width':1.5}));
+  svg.appendChild(el('circle',{cx,cy,r:R-30,fill:'none',stroke:'#26303C','stroke-width':1,'stroke-dasharray':'2 4'}));
+
+  // cardinal labels
+  const labels = [['N',0],['E',90],['S',180],['O',270]];
+  labels.forEach(([txt,deg])=>{
+    const rad = toRad(deg-90);
+    const x = cx + Math.cos(rad)*(R-14);
+    const y = cy + Math.sin(rad)*(R-14);
+    const t = el('text',{x,y,fill:deg===0?'#F2A93B':'#8FA0B3','font-family':'Bebas Neue','font-size':deg===0?'16':'13','text-anchor':'middle','dominant-baseline':'middle'});
+    t.textContent = txt;
+    svg.appendChild(t);
+  });
+
+  // van rectangle rotated to heading (0deg = North = up)
+  const g = el('g',{transform:`translate(${cx},${cy}) rotate(${heading})`});
+  const vanW=40, vanL=64;
+  function faceColor(name){
+    const ratio = maxFaceLoad>0 ? faceLoad[name]/maxFaceLoad : 0;
+    // interpolate teal (shaded) -> hot (exposed)
+    const c1=[95,184,172], c2=[232,115,74];
+    const c = c1.map((v,i)=>Math.round(v+(c2[i]-v)*ratio));
+    return `rgb(${c[0]},${c[1]},${c[2]})`;
+  }
+  // body
+  g.appendChild(el('rect',{x:-vanW/2,y:-vanL/2,width:vanW,height:vanL,rx:8,fill:'#141922','stroke':'#0000','stroke-width':0}));
+  // edges as thick lines per face
+  const half_w=vanW/2, half_l=vanL/2;
+  g.appendChild(el('line',{x1:-half_w,y1:-half_l,x2:half_w,y2:-half_l,stroke:faceColor('avant'),'stroke-width':6,'stroke-linecap':'round'})); // avant = top (north-facing at heading 0)
+  g.appendChild(el('line',{x1:-half_w,y1:half_l,x2:half_w,y2:half_l,stroke:faceColor('arriere'),'stroke-width':6,'stroke-linecap':'round'}));
+  g.appendChild(el('line',{x1:half_w,y1:-half_l,x2:half_w,y2:half_l,stroke:faceColor('droite'),'stroke-width':6,'stroke-linecap':'round'}));
+  g.appendChild(el('line',{x1:-half_w,y1:-half_l,x2:-half_w,y2:half_l,stroke:faceColor('gauche'),'stroke-width':6,'stroke-linecap':'round'}));
+  // small nose triangle to mark "avant"
+  g.appendChild(el('polygon',{points:`0,${-half_l-10} -8,${-half_l+2} 8,${-half_l+2}`, fill:'#F4EFE4'}));
+  svg.appendChild(g);
+
+  // sun resultant arrow
+  const sunRad = toRad(sunResultantAz-90);
+  const sx = cx + Math.cos(sunRad)*(R-6);
+  const sy = cy + Math.sin(sunRad)*(R-6);
+  svg.appendChild(el('line',{x1:cx,y1:cy,x2:sx,y2:sy,stroke:'#F2A93B','stroke-width':2,'stroke-dasharray':'4 3',opacity:'0.85'}));
+  svg.appendChild(el('circle',{cx:sx,cy:sy,r:6,fill:'#F2A93B'}));
+}
+
+function maxLoadOf(faceLoad){
+  return Math.max(...Object.values(faceLoad), 0.0001);
+}
+
+const FACE_NAMES = {avant:'Avant', droite:'Côté droit', arriere:'Arrière', gauche:'Côté gauche'};
+
+function renderFaceBars(faceLoad, container, compact, decimals){
+  decimals = decimals || 0;
+  const maxLoad = maxLoadOf(faceLoad);
+  const totalLoad = Object.values(faceLoad).reduce((a,b)=>a+b,0) || 0.0001;
+  container.innerHTML='';
+  Object.keys(FACE_NAMES).forEach(k=>{
+    const rawPct = faceLoad[k]/totalLoad*100;
+    const pct = rawPct.toFixed(decimals);
+    const ratio = faceLoad[k]/maxLoad; // pour la couleur : contraste max vs le reste
+    const c1=[95,184,172], c2=[232,115,74];
+    const c = c1.map((v,i)=>Math.round(v+(c2[i]-v)*ratio));
+    const row = document.createElement('div');
+    row.className = compact ? 'face-row sm' : 'face-row';
+    row.innerHTML = `<div class="face-label${compact?' sm':''}">${FACE_NAMES[k]}</div>
+      <div class="face-bar-bg${compact?' sm':''}"><div class="face-bar" style="width:${rawPct}%;background:rgb(${c[0]},${c[1]},${c[2]})"></div></div>
+      <div class="face-pct">${pct}%</div>`;
+    container.appendChild(row);
+  });
+}
+
+function runCalc(){
+  const lat = currentLat;
+  const lon = currentLon;
+  if(lat===null || lon===null || isNaN(lat) || isNaN(lon)){
+    alert("Indique d'abord ta position : recherche ta ville/adresse en étape 1.");
+    return;
+  }
+  const startVal = $('startDate').value;
+  const startDate = startVal ? new Date(startVal+'T12:00:00') : new Date();
+  const nights = Math.max(1, Math.min(30, parseInt($('nights').value)||1));
+
+  const weights = {
+    avant: currentGlazing.avant/3,
+    arriere: currentGlazing.arriere/3,
+    droite: currentGlazing.droite/3,
+    gauche: currentGlazing.gauche/3
+  };
+  if(weights.avant+weights.arriere+weights.droite+weights.gauche===0){
+    weights.avant=weights.arriere=weights.droite=weights.gauche=1; // pas de préférence -> tout compte
+  }
+
+  const days = [];
+  for(let i=0;i<nights;i++){
+    const d = new Date(startDate);
+    d.setDate(d.getDate()+i);
+    days.push(d);
+  }
+
+  const isFixed = $('fixedAngle').checked;
+  let candidateThetas;
+  if(isFixed){
+    const offset = Math.max(0, Math.min(89, parseInt($('rowOffset').value)||0));
+    candidateThetas = [offset, (offset+90)%360, (offset+180)%360, (offset+270)%360];
+  } else {
+    candidateThetas = [];
+    for(let t=0;t<360;t+=2) candidateThetas.push(t);
+  }
+
+  const presence = $('timeWeight').checked ? {
+    matin: $('presMatin').checked,
+    midi: $('presMidi').checked,
+    apresMidi: $('presApresMidi').checked,
+    soir: $('presSoir').checked
+  } : null;
+
+  const { ranking, samples } = computeExposure(days, lat, lon, weights, candidateThetas, presence);
+  const best = ranking[0];
+
+  // direction résultante moyenne du soleil (pour l'affichage de la flèche), pondérée simplement par l'intensité
+  let sx=0, sy=0;
+  for(const day of days){
+    for(let h=6;h<20;h+=0.5){
+      const hh=Math.floor(h), mm=Math.round((h-hh)*60);
+      const dd = new Date(day.getFullYear(),day.getMonth(),day.getDate(),hh,mm,0);
+      const r = solarPosition(dd, lat, lon);
+      if(r.elevation>0){
+        const w = Math.sin(toRad(r.elevation));
+        sx += w*Math.sin(toRad(r.azimuth));
+        sy += w*Math.cos(toRad(r.azimuth));
+      }
+    }
+  }
+  const sunResultantAz = (toDeg(Math.atan2(sx,sy))+360)%360;
+
+  // affichage
+  $('results').style.display = 'block';
+  const heading = best.theta;
+  $('headline').innerHTML = `Orientez l'AVANT vers le <span class="deg">${compassPointFR(heading)}</span> <span class="deg">(${heading}°)</span>`;
+
+  const roundedLine = $('roundedLine');
+  if(!isFixed){
+    const roundCandidates = ranking.filter(r => r.theta % 10 === 0);
+    if(roundCandidates.length){
+      const roundBest = roundCandidates[0]; // déjà trié du meilleur au pire
+      if(roundBest.theta !== heading){
+        roundedLine.textContent = `En pratique, viser ${roundBest.theta}° (${compassPointFR(roundBest.theta)}) suffit.`;
+      } else {
+        roundedLine.textContent = '';
+      }
+    }
+  } else {
+    roundedLine.textContent = '';
+  }
+  const dominantDir = compassPointFR(sunResultantAz);
+  const placeTxt = currentPlaceLabel ? ` (${currentPlaceLabel.length>50 ? currentPlaceLabel.slice(0,50)+'…' : currentPlaceLabel})` : '';
+  $('subline').textContent = `Le soleil dominera globalement côté ${dominantDir} sur cette étape${placeTxt} — cette orientation place vos vitres les plus exposées à l'écart de cet axe.`;
+
+  const worst = ranking[ranking.length-1];
+  const gainLine = $('gainLine');
+  if(worst.load>0 && ranking.length>1){
+    const gainPct = Math.round((1 - best.load/worst.load)*100);
+    const scopeTxt = isFixed ? 'la pire des 4 orientations possibles ici' : 'la pire orientation possible (0–360°)';
+    gainLine.textContent = gainPct>0
+      ? `≈ ${gainPct}% de rayonnement direct en moins que ${scopeTxt}.`
+      : `Toutes les orientations sont quasi équivalentes ici — le sens de stationnement ne fait pas beaucoup de différence pour cette étape.`;
+  } else {
+    gainLine.textContent = '';
+  }
+
+  const rankingBlock = $('rankingBlock');
+  const rankingList = $('rankingList');
+  rankingList.innerHTML='';
+  if(isFixed){
+    rankingBlock.style.display='block';
+    const worstLoad = ranking[ranking.length-1].load || 1;
+    const ordinals = ['1er choix','2e choix','3e choix','4e choix'];
+    ranking.forEach((r,i)=>{
+      const relExposure = Math.round(r.load/worstLoad*100);
+      const row = document.createElement('div');
+      row.className='face-row';
+      row.style.marginBottom='6px';
+      row.innerHTML = `<div class="face-label" style="width:78px;">${ordinals[i]||(i+1)+'e'}</div>
+        <div style="flex:1;font-size:13px;color:var(--text);">${compassPointFR(r.theta)} (${r.theta}°)</div>
+        <div class="face-pct">${i===0?'—':'+'+relExposure+'%'}</div>`;
+      rankingList.appendChild(row);
+    });
+  } else {
+    rankingBlock.style.display='none';
+  }
+
+  renderFaceBars(best.faceLoad, $('faces'), false);
+
+  drawCompass($('compass'), sunResultantAz, heading, best.faceLoad, maxLoadOf(best.faceLoad));
+
+  // détail jour par jour
+  const daysList = $('daysList');
+  daysList.innerHTML='';
+  days.forEach((d,i)=>{
+    const noon = new Date(d.getFullYear(),d.getMonth(),d.getDate(),12,0,0);
+    const st = sunTimes(noon, lat, lon);
+    const label = d.toLocaleDateString('fr-FR',{weekday:'short', day:'numeric', month:'short'});
+    const block = document.createElement('div');
+    block.className='day-block';
+
+    if(st.polar){
+      block.innerHTML = `<div class="day-head">${label}</div><div class="day-faces">Soleil ${st.polar==='jour'?'permanent':'absent'} (latitude extrême)</div>`;
+      daysList.appendChild(block);
+    } else {
+      const daySamples = samples.filter(s=>s.dayIndex===i);
+      const dayResult = faceLoadForTheta(daySamples, weights, heading);
+      block.innerHTML = `<div class="day-head">${label} · lever ${fmtMin(st.sunriseMin)} · coucher ${fmtMin(st.sunsetMin)}</div>`;
+      const barsDiv = document.createElement('div');
+      barsDiv.style.marginTop = '6px';
+      block.appendChild(barsDiv);
+      daysList.appendChild(block);
+      renderFaceBars(dayResult.faceLoad, barsDiv, true, 1);
+    }
+  });
+
+  $('note').textContent = "N'intègre pas l'ombre du relief, des arbres ou des bâtiments environnants.";
+
+  $('results').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+$('btnCalc').addEventListener('click', runCalc);
+</script>
+</body>
+</html>

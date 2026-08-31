@@ -1,0 +1,6 @@
+{
+  "name": "Minutage",
+  "desc": "Permet de calculer le temps de visionnage d'une série",
+  "tags": ["A11y", "JS"],
+  "status": "live"
+}

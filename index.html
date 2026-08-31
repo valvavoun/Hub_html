@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valvavoun — Index</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1B33;
+    --navy-2:#0D2140;
+    --grid:rgba(94,234,212,0.055);
+    --grid-major:rgba(94,234,212,0.10);
+    --cyan:#5EEAD4;
+    --amber:#FFB020;
+    --ink:#EAF1F5;
+    --ink-dim:#7E93AB;
+    --line:rgba(126,147,171,0.28);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      repeating-linear-gradient(0deg, var(--grid) 0 1px, transparent 1px 40px),
+      repeating-linear-gradient(90deg, var(--grid) 0 1px, transparent 1px 40px),
+      var(--navy);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    position:relative;
+  }
+  .crop{position:fixed;width:18px;height:18px;border-color:var(--line);z-index:5;pointer-events:none;}
+  .crop.tl{top:14px;left:14px;border-top:1px solid var(--line);border-left:1px solid var(--line);}
+  .crop.tr{top:14px;right:14px;border-top:1px solid var(--line);border-right:1px solid var(--line);}
+  .crop.bl{bottom:14px;left:14px;border-bottom:1px solid var(--line);border-left:1px solid var(--line);}
+  .crop.br{bottom:14px;right:14px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);}
+
+  .wrap{max-width:760px;margin:0 auto;padding:80px 28px 100px;}
+
+  header{margin-bottom:52px;}
+  .tag-line{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:var(--cyan);
+    letter-spacing:0.08em;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:22px;
+  }
+  .tag-line .n{color:var(--ink-dim);}
+  h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:clamp(38px,7vw,58px);
+    margin:0;
+    letter-spacing:-0.01em;
+    color:transparent;
+    -webkit-text-stroke:1.4px var(--ink);
+  }
+  .sub{
+    margin-top:16px;
+    color:var(--ink-dim);
+    font-size:15.5px;
+    max-width:460px;
+    line-height:1.6;
+  }
+  .legend{
+    display:flex;
+    gap:22px;
+    margin-top:28px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;
+    color:var(--ink-dim);
+  }
+  .legend span{display:flex;align-items:center;gap:6px;}
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+  .dot.live{background:var(--amber);}
+  .dot.dev{background:var(--cyan);}
+
+  #board{display:flex;flex-direction:column;}
+
+  .status-line{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    color:var(--ink-dim);
+    padding:20px 0;
+    border-top:1px dashed var(--line);
+  }
+
+  .card{
+    position:relative;
+    padding:26px 8px 26px 0;
+    border-top:1px dashed var(--line);
+    display:grid;
+    grid-template-columns:64px 1fr 24px;
+    gap:18px;
+    text-decoration:none;
+    color:inherit;
+    align-items:start;
+  }
+  .card::before,.card::after{
+    content:"";
+    position:absolute;
+    width:9px;height:9px;
+    border-color:var(--cyan);
+    opacity:0;
+    transition:opacity 0.15s ease;
+  }
+  .card::before{top:12px;left:-8px;border-top:1.5px solid var(--cyan);border-left:1.5px solid var(--cyan);}
+  .card::after{bottom:12px;right:16px;border-bottom:1.5px solid var(--cyan);border-right:1.5px solid var(--cyan);}
+  .card:hover::before,.card:hover::after{opacity:1;}
+  .card:hover .p-name{color:var(--cyan);}
+  .card:hover .arrow{transform:translate(3px,-3px);opacity:1;}
+
+  .p-code{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:var(--ink-dim);
+    padding-top:2px;
+  }
+  .p-body{min-width:0;}
+  .p-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:7px;}
+  .p-name{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:19px;
+    transition:color 0.15s ease;
+  }
+  .p-status{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    letter-spacing:0.05em;
+    color:var(--ink-dim);
+    display:flex;
+    align-items:center;
+    gap:5px;
+  }
+  .p-desc{color:var(--ink-dim);font-size:14.5px;line-height:1.55;margin-bottom:11px;max-width:480px;}
+  .p-tags{display:flex;gap:7px;flex-wrap:wrap;}
+  .p-tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    color:var(--cyan);
+    border:1px solid rgba(94,234,212,0.3);
+    padding:2px 7px;
+    border-radius:3px;
+  }
+  .arrow{
+    font-family:'JetBrains Mono',monospace;
+    color:var(--ink-dim);
+    font-size:15px;
+    padding-top:3px;
+    opacity:0.5;
+    transition:all 0.15s ease;
+  }
+
+  .empty{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    color:var(--ink-dim);
+    padding:30px 0;
+    border-top:1px dashed var(--line);
+    line-height:1.7;
+  }
+
+  footer{
+    margin-top:40px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--ink-dim);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  @media (max-width:560px){
+    .card{grid-template-columns:36px 1fr 20px;}
+    .crop{display:none;}
+  }
+</style>
+</head>
+<body>
+  <div class="crop tl"></div><div class="crop tr"></div>
+  <div class="crop bl"></div><div class="crop br"></div>
+
+  <div class="wrap">
+    <header>
+      <div class="tag-line">INDEX <span class="n">/ mis à jour à chaque chargement</span></div>
+      <h1>Valvavoun</h1>
+      <p class="sub">Outils, overlays et dashboards développés en solo — jeu, données temps réel et modding.</p>
+      <div class="legend">
+        <span><i class="dot live"></i>en ligne</span>
+        <span><i class="dot dev"></i>en développement</span>
+      </div>
+    </header>
+
+    <div id="board">
+      <div class="status-line" id="status">Interrogation du dépôt…</div>
+    </div>
+
+    <footer>
+      <span id="foot-count"></span>
+      <span>github.com/<span id="foot-owner"></span></span>
+    </footer>
+  </div>
+
+<script>
+  // ---- À configurer une seule fois ----
+  const OWNER  = "valvavoun";
+  const REPO   = "valvavoun.github.io";
+  const BRANCH = "main";
+  // Liens externes (autres repos, hors scan automatique) — optionnel
+  const externalLinks = [
+    // { name: "MXGP Livetiming", desc: "Classements temps réel MXGP.", tags: ["SignalR","Firebase"], status: "live", href: "https://valvavoun.github.io/Livetiming/" }
+  ];
+  // --------------------------------------
+
+  const board = document.getElementById('board');
+  const statusLine = document.getElementById('status');
+  document.getElementById('foot-owner').textContent = `${OWNER}/${REPO}`;
+
+  const IGNORE = new Set(['.github', '.git', 'assets', 'img', 'images']);
+
+  async function loadProjects() {
+    let dirs = [];
+    try {
+      const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/`);
+      if (!res.ok) throw new Error('api');
+      const items = await res.json();
+      dirs = items.filter(i => i.type === 'dir' && !i.name.startsWith('.') && !IGNORE.has(i.name));
+    } catch (e) {
+      renderError();
+      return;
+    }
+
+    const projects = await Promise.all(dirs.map(async d => {
+      let meta = null;
+      try {
+        const r = await fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${d.name}/meta.json`);
+        if (r.ok) meta = await r.json();
+      } catch (e) { /* pas de meta.json, on retombe sur le nom du dossier */ }
+
+      return {
+        name: meta?.name || humanize(d.name),
+        desc: meta?.desc || "Aucune description fournie.",
+        tags: meta?.tags || [],
+        status: meta?.status === 'live' ? 'live' : 'dev',
+        href: `./${d.name}/`
+      };
+    }));
+
+    render([...projects, ...externalLinks]);
+  }
+
+  function humanize(slug) {
+    return slug.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  function render(projects) {
+    board.innerHTML = '';
+    if (projects.length === 0) {
+      board.innerHTML = `<div class="empty">Aucun projet détecté pour le moment.<br>Ajoute un dossier contenant un index.html à la racine du dépôt, puis recharge cette page.</div>`;
+      document.getElementById('foot-count').textContent = '0 projet';
+      return;
+    }
+    projects.forEach((p, i) => {
+      const a = document.createElement('a');
+      a.className = 'card';
+      a.href = p.href;
+      a.innerHTML = `
+        <div class="p-code">PRJ&#8209;${String(i + 1).padStart(2, '0')}</div>
+        <div class="p-body">
+          <div class="p-head">
+            <span class="p-name">${p.name}</span>
+            <span class="p-status"><i class="dot ${p.status}"></i>${p.status === 'live' ? 'en ligne' : 'en développement'}</span>
+          </div>
+          <div class="p-desc">${p.desc}</div>
+          ${p.tags.length ? `<div class="p-tags">${p.tags.map(t => `<span class="p-tag">${t}</span>`).join('')}</div>` : ''}
+        </div>
+        <div class="arrow">↗</div>
+      `;
+      board.appendChild(a);
+    });
+    document.getElementById('foot-count').textContent = `${projects.length} projet${projects.length > 1 ? 's' : ''}`;
+  }
+
+  function renderError() {
+    board.innerHTML = `<div class="empty">Impossible d'interroger l'API GitHub pour l'instant (limite de requêtes ou dépôt privé).<br>Vérifie OWNER / REPO en haut du script, ou réessaie dans quelques minutes.</div>`;
+  }
+
+  loadProjects();
+</script>
+</body>
+</html>
