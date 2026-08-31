@@ -2,5 +2,5 @@
   "name": "Calculateur solaire",
   "desc": "Permet de calculer la meilleure orientation pour avoir été le moins au soleil possible",
   "tags": ["Solaire", "Calcul", "Orientation"],
-  "status": "dev"
+  "status": "live"
 }

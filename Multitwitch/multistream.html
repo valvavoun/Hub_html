@@ -92,9 +92,9 @@
     display:grid;
     grid-template-columns:1fr 340px;
     gap:0;
-    min-height:calc(100vh - 60px);
+    height:calc(100vh - 60px);
   }
-  .browse-col{padding:22px 26px;border-right:1px solid var(--line);}
+  .browse-col{padding:22px 26px;border-right:1px solid var(--line);height:100%;overflow-y:auto;}
   .search-row{display:flex;gap:8px;margin-bottom:18px;}
   .search-row input{
     flex:1;background:var(--panel);border:1px solid var(--line);
@@ -167,7 +167,7 @@
 
   .empty-msg{color:var(--muted);font-size:13px;padding:30px 0;text-align:center;}
 
-  aside.selection-col{padding:22px 22px;display:flex;flex-direction:column;gap:16px;}
+  aside.selection-col{padding:22px 22px;display:flex;flex-direction:column;gap:14px;height:100%;overflow:hidden;}
   .manual-add{display:flex;gap:6px;}
   .manual-add input{
     flex:1;background:var(--panel);border:1px solid var(--line);color:var(--text);
@@ -179,7 +179,7 @@
   }
   .manual-add button:hover{border-color:var(--violet);color:var(--text);}
 
-  .selected-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto;}
+  .selected-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;flex:1;min-height:60px;overflow-y:auto;}
   .selected-list li{
     display:flex;align-items:center;gap:8px;
     background:var(--panel);border:1px solid var(--line);border-radius:8px;
@@ -204,26 +204,45 @@
 
   #launchBtn{margin-top:auto;}
 
-  /* ---- pure viewer mode: nothing but the streams ---- */
+  /* ---- pure viewer mode: nothing but the streams, all identical size ---- */
   #viewerGrid{
     display:none;
     position:fixed;top:0;left:0;right:0;bottom:0;
-    flex-direction:column;
-    align-items:center;
+    flex-wrap:wrap;
+    align-content:center;
     justify-content:center;
     background:#000;
     z-index:100;
   }
   #viewerGrid.active{display:flex;}
-  #viewerGrid .row{display:flex;flex-direction:row;justify-content:center;}
   #viewerGrid .cell{position:relative;overflow:hidden;background:#000;flex:0 0 auto;}
   #viewerGrid .cell > div{width:100%;height:100%;}
   #viewerGrid .cell iframe{width:100% !important;height:100% !important;border:0;display:block;}
   body.viewing{overflow:hidden;}
   body.viewing #shell{display:none;}
+
+  #backToConfigBtn{
+    position:fixed;bottom:16px;right:16px;
+    z-index:200;
+    background:rgba(0,0,0,.5);
+    color:#fff;
+    border:1px solid rgba(255,255,255,.15);
+    padding:7px 14px;
+    border-radius:999px;
+    font-size:12px;
+    font-family:"Inter",sans-serif;
+    cursor:pointer;
+    opacity:.18;
+    transition:opacity .15s, background .15s;
+    display:none;
+  }
+  body.viewing #backToConfigBtn{display:block;}
+  #backToConfigBtn:hover{opacity:1;background:rgba(0,0,0,.75);}
 </style>
 </head>
 <body>
+
+<button id="backToConfigBtn" type="button">Modifier</button>
 
 <div id="shell">
   <header>
@@ -233,19 +252,21 @@
 
   <div id="connectPanel">
     <h2>Connexion à Twitch</h2>
-    <p>Pour parcourir les catégories et streams en direct, une connexion à l'API Twitch est nécessaire. Créez une application gratuite si ce n'est pas déjà fait :</p>
-    <ol>
-      <li>Allez sur <code>dev.twitch.tv/console/apps</code> et créez une application.</li>
-      <li>Dans "OAuth Redirect URLs", collez exactement l'adresse ci-dessous.</li>
-      <li>Copiez le "Client ID" généré et collez-le dans le champ plus bas.</li>
-    </ol>
-    <div class="redirect-box">
-      <code id="redirectUriText"></code>
-      <button id="copyRedirect" type="button">Copier</button>
-    </div>
-    <div class="field">
-      <label for="clientIdInput">Client ID Twitch</label>
-      <input id="clientIdInput" type="text" placeholder="ex : abcd1234efgh5678...">
+    <div id="setupInstructions">
+      <p>Pour parcourir les catégories et streams en direct, une connexion à l'API Twitch est nécessaire. Créez une application gratuite si ce n'est pas déjà fait :</p>
+      <ol>
+        <li>Allez sur <code>dev.twitch.tv/console/apps</code> et créez une application.</li>
+        <li>Dans "OAuth Redirect URLs", collez exactement l'adresse ci-dessous.</li>
+        <li>Copiez le "Client ID" généré et collez-le dans le champ plus bas.</li>
+      </ol>
+      <div class="redirect-box">
+        <code id="redirectUriText"></code>
+        <button id="copyRedirect" type="button">Copier</button>
+      </div>
+      <div class="field">
+        <label for="clientIdInput">Client ID Twitch</label>
+        <input id="clientIdInput" type="text" placeholder="ex : abcd1234efgh5678...">
+      </div>
     </div>
     <button class="btn-primary" id="connectBtn">Se connecter à Twitch</button>
     <div id="statusLine"></div>
@@ -289,19 +310,26 @@
           <button id="manualAddBtn" type="button">Ajouter</button>
         </div>
 
-        <div>
+        <div style="display:flex;flex-direction:column;flex:1;min-height:0;">
           <h3 class="section-title">Sélection (<span id="selCount">0</span>)</h3>
           <ul class="selected-list" id="selectedList"></ul>
         </div>
 
         <div class="options">
           <label><input type="checkbox" id="optAutoplay" checked> Lecture automatique de tous les streams</label>
-          <label><input type="checkbox" id="optQuality" checked> Qualité maximale sur tous les streams</label>
-          <label for="optPerRow" style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;">
-            Streams par ligne
-            <input type="number" id="optPerRow" min="1" placeholder="auto" style="width:100%;background:#0c0c10;border:1px solid var(--line);color:var(--text);padding:8px 10px;border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+          <label for="optQuality" style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;cursor:default;">
+            Qualité par défaut
+            <select id="optQuality" style="width:100%;background:#0c0c10;border:1px solid var(--line);color:var(--text);padding:8px 10px;border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+              <option value="chunked" selected>Source (meilleure qualité)</option>
+              <option value="1080">1080p</option>
+              <option value="720">720p</option>
+              <option value="480">480p</option>
+              <option value="360">360p</option>
+              <option value="160">160p</option>
+              <option value="auto">Automatique (économise la bande passante)</option>
+            </select>
           </label>
-          <p class="hint">Laissez « auto » pour que la taille de chaque stream soit optimisée automatiquement (moins de bandes noires) — ou fixez un nombre pour arranger vous-même les lignes. Un seul stream a le son actif à la fois, cliquez sur 🔈 pour choisir lequel. Glissez les lignes de la sélection pour changer l'ordre. Échap pour revenir ici.</p>
+          <p class="hint">Un seul stream a le son actif à la fois, cliquez sur 🔈 pour choisir lequel. Glissez les lignes de la sélection pour changer l'ordre. Échap pour revenir ici, ou le petit bouton discret en bas à droite.</p>
         </div>
 
         <button class="btn-primary" id="launchBtn" disabled>Watch</button>
@@ -316,6 +344,7 @@
 (function(){
   const CLIENT_ID_KEY = 'multistream_twitch_client_id';
   const TOKEN_KEY = 'multistream_twitch_token';
+  const SETUP_DONE_KEY = 'multistream_setup_done';
 
   const redirectUri = location.origin + location.pathname;
   document.getElementById('redirectUriText').textContent = redirectUri;
@@ -341,6 +370,7 @@
     if (t) {
       token = t;
       localStorage.setItem(TOKEN_KEY, t);
+      localStorage.setItem(SETUP_DONE_KEY, '1');
       history.replaceState(null, '', location.pathname);
     }
   }
@@ -374,8 +404,14 @@
   function showConnect(msg) {
     document.getElementById('connectPanel').style.display = 'block';
     document.getElementById('app').style.display = 'none';
+    // Once the app has been set up successfully before, skip the full
+    // instructions on future visits — just offer a one-click reconnect.
+    const setupDone = localStorage.getItem(SETUP_DONE_KEY) === '1';
+    document.getElementById('setupInstructions').style.display = setupDone ? 'none' : 'block';
+    document.getElementById('connectBtn').textContent = setupDone ? 'Se reconnecter à Twitch' : 'Se connecter à Twitch';
     const s = document.getElementById('statusLine');
     if (msg) { s.textContent = msg; s.style.color = 'var(--ember)'; s.style.display = 'block'; }
+    else { s.style.display = 'none'; }
   }
 
   function showApp() {
@@ -476,13 +512,17 @@
   const currentCategoryName = document.getElementById('currentCategoryName');
   const langFilter = document.getElementById('langFilter');
   let activeGameId = null;
+  let gamesCursor = null;
+  let gamesQuery = null; // null = top games, string = search query
+  let streamsCursor = null;
 
-  function renderCategories(games, title) {
+  function renderCategories(games, title, append) {
     document.getElementById('categoryGridTitle').textContent = title;
     categoryGrid.style.display = 'grid';
     streamsPanel.style.display = 'none';
-    categoryGrid.innerHTML = '';
-    if (!games.length) {
+    if (!append) categoryGrid.innerHTML = '';
+    document.getElementById('loadMoreGames')?.remove();
+    if (!append && !games.length) {
       categoryGrid.innerHTML = '<div class="empty-msg">Aucun résultat.</div>';
       return;
     }
@@ -500,19 +540,36 @@
       card.addEventListener('click', () => openCategory(g.id, g.name));
       categoryGrid.appendChild(card);
     });
+    if (gamesCursor) {
+      const btn = document.createElement('button');
+      btn.id = 'loadMoreGames';
+      btn.type = 'button';
+      btn.textContent = 'Charger plus de catégories';
+      btn.style.cssText = 'grid-column:1/-1;background:transparent;border:1px solid var(--line);color:var(--muted);padding:10px;border-radius:8px;font-size:13px;cursor:pointer;font-family:Inter,sans-serif;';
+      btn.addEventListener('click', () => gamesQuery === null ? loadTopGames(true) : searchCategories(gamesQuery, true));
+      categoryGrid.appendChild(btn);
+    }
   }
 
-  async function loadTopGames() {
+  async function loadTopGames(append) {
+    gamesQuery = null;
     try {
-      const data = await helix('/games/top?first=16');
-      renderCategories(data.data, 'Catégories populaires');
+      let path = '/games/top?first=100';
+      if (append && gamesCursor) path += '&after=' + encodeURIComponent(gamesCursor);
+      const data = await helix(path);
+      gamesCursor = data.pagination && data.pagination.cursor ? data.pagination.cursor : null;
+      renderCategories(data.data, 'Catégories populaires', append);
     } catch (e) { console.error(e); }
   }
 
-  async function searchCategories(query) {
+  async function searchCategories(query, append) {
+    gamesQuery = query;
     try {
-      const data = await helix('/search/categories?query=' + encodeURIComponent(query) + '&first=16');
-      renderCategories(data.data, 'Résultats pour « ' + query + ' »');
+      let path = '/search/categories?query=' + encodeURIComponent(query) + '&first=100';
+      if (append && gamesCursor) path += '&after=' + encodeURIComponent(gamesCursor);
+      const data = await helix(path);
+      gamesCursor = data.pagination && data.pagination.cursor ? data.pagination.cursor : null;
+      renderCategories(data.data, 'Résultats pour « ' + query + ' »', append);
     } catch (e) { console.error(e); }
   }
 
@@ -521,22 +578,26 @@
     currentCategoryName.textContent = name;
     categoryGrid.style.display = 'none';
     streamsPanel.style.display = 'block';
-    await loadStreams();
+    streamsCursor = null;
+    await loadStreams(false);
   }
 
-  async function loadStreams() {
-    streamsList.innerHTML = '<div class="empty-msg">Chargement…</div>';
+  async function loadStreams(append) {
+    if (!append) streamsList.innerHTML = '<div class="empty-msg">Chargement…</div>';
     try {
-      let path = '/streams?first=30&game_id=' + encodeURIComponent(activeGameId);
+      let path = '/streams?first=100&game_id=' + encodeURIComponent(activeGameId);
       if (langFilter.value) path += '&language=' + encodeURIComponent(langFilter.value);
+      if (append && streamsCursor) path += '&after=' + encodeURIComponent(streamsCursor);
       const data = await helix(path);
-      renderStreams(data.data);
+      streamsCursor = data.pagination && data.pagination.cursor ? data.pagination.cursor : null;
+      renderStreams(data.data, append);
     } catch (e) { console.error(e); streamsList.innerHTML = '<div class="empty-msg">Erreur de chargement.</div>'; }
   }
 
-  function renderStreams(streams) {
-    streamsList.innerHTML = '';
-    if (!streams.length) {
+  function renderStreams(streams, append) {
+    if (!append) streamsList.innerHTML = '';
+    document.getElementById('loadMoreStreams')?.remove();
+    if (!append && !streams.length) {
       streamsList.innerHTML = '<div class="empty-msg">Aucun stream en direct pour ce filtre.</div>';
       return;
     }
@@ -578,11 +639,20 @@
 
       streamsList.appendChild(row);
     });
+    if (streamsCursor) {
+      const btn = document.createElement('button');
+      btn.id = 'loadMoreStreams';
+      btn.type = 'button';
+      btn.textContent = 'Charger plus de streams';
+      btn.style.cssText = 'background:transparent;border:1px solid var(--line);color:var(--muted);padding:10px;border-radius:8px;font-size:13px;cursor:pointer;font-family:Inter,sans-serif;';
+      btn.addEventListener('click', () => loadStreams(true));
+      streamsList.appendChild(btn);
+    }
   }
 
   document.getElementById('searchBtn').addEventListener('click', () => {
     const q = document.getElementById('searchInput').value.trim();
-    if (q) searchCategories(q);
+    if (q) { gamesCursor = null; searchCategories(q); }
   });
   document.getElementById('searchInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') document.getElementById('searchBtn').click();
@@ -591,45 +661,22 @@
     categoryGrid.style.display = 'grid';
     streamsPanel.style.display = 'none';
   });
-  langFilter.addEventListener('change', () => { if (activeGameId) loadStreams(); });
+  langFilter.addEventListener('change', () => { if (activeGameId) { streamsCursor = null; loadStreams(false); } });
 
   // --- watch mode: same page, pure fullscreen grid, nothing else ---
   const viewerGrid = document.getElementById('viewerGrid');
   let activePlayers = [];
   let viewerChannelCount = 0;
 
-  // Splits n tiles (same 16:9 aspect ratio) into rows so every row fills
-  // the full width edge-to-edge, then picks the row split that leaves the
-  // least leftover space top/bottom or side/side for the current viewport.
-  // If maxPerRow is set, that split is used directly instead of searched.
-  function computeJustifiedRows(n, W, H, maxPerRow) {
-    function rowsForSplit(rowsK) {
-      let totalH = 0;
-      rowsK.forEach(k => { totalH += (W / k) * (9 / 16); });
-      let scale, wasted;
-      if (totalH <= H) { scale = 1; wasted = W * (H - totalH); }
-      else { scale = H / totalH; wasted = W * H * (1 - scale); }
-      return { rowsK, scale, wasted };
-    }
-
-    if (maxPerRow && maxPerRow > 0) {
-      const rowsK = [];
-      let remaining = n;
-      while (remaining > 0) {
-        const k = Math.min(maxPerRow, remaining);
-        rowsK.push(k);
-        remaining -= k;
-      }
-      return rowsForSplit(rowsK);
-    }
-
-    let best = null;
-    for (let r = 1; r <= n; r++) {
-      const base = Math.floor(n / r), extra = n % r;
-      const rowsK = [];
-      for (let i = 0; i < r; i++) rowsK.push(base + (i < extra ? 1 : 0));
-      const candidate = rowsForSplit(rowsK);
-      if (!best || candidate.wasted < best.wasted) best = candidate;
+  // Every tile is the same size (like streamscharts' multistream view).
+  // Searches every possible column count and keeps the one that lets a
+  // uniform 16:9 tile be as large as possible for the current viewport.
+  function computeUniformLayout(n, W, H) {
+    let best = { cols: 1, rows: n, scale: 0 };
+    for (let cols = 1; cols <= n; cols++) {
+      const rows = Math.ceil(n / cols);
+      const scale = Math.min(W / (cols * 16), H / (rows * 9));
+      if (scale > best.scale) best = { cols, rows, scale };
     }
     return best;
   }
@@ -638,77 +685,73 @@
     if (!viewerChannelCount) return;
     const W = window.innerWidth;
     const H = window.innerHeight;
-    const perRowInput = parseInt(document.getElementById('optPerRow').value, 10);
-    const maxPerRow = perRowInput > 0 ? perRowInput : null;
-    const { rowsK, scale } = computeJustifiedRows(viewerChannelCount, W, H, maxPerRow);
-
-    const rowEls = [...viewerGrid.querySelectorAll('.row')];
-    let idx = 0;
-    rowsK.forEach((k, rowIndex) => {
-      const tileW = Math.floor((W / k) * scale);
-      const tileH = Math.floor(tileW * 9 / 16);
-      for (let i = 0; i < k; i++) {
-        const cell = rowEls[rowIndex] && rowEls[rowIndex].children[i];
-        if (cell) { cell.style.width = tileW + 'px'; cell.style.height = tileH + 'px'; }
-        idx++;
-      }
+    const { scale } = computeUniformLayout(viewerChannelCount, W, H);
+    const w = Math.floor(scale * 16);
+    const h = Math.floor(scale * 9);
+    viewerGrid.querySelectorAll('.cell').forEach(cell => {
+      cell.style.width = w + 'px';
+      cell.style.height = h + 'px';
     });
+  }
+
+  // Maps a friendly quality choice to the Twitch player's quality group,
+  // matching against whatever qualities that particular stream actually offers.
+  function applyQuality(player, choice) {
+    try {
+      if (choice === 'chunked' || choice === 'auto') { player.setQuality(choice); return; }
+      const qualities = player.getQualities() || [];
+      let match = qualities.find(q => q.group && q.group.startsWith(choice));
+      if (!match) match = qualities.find(q => q.name && q.name.includes(choice));
+      player.setQuality(match ? match.group : 'chunked');
+    } catch (e) {}
   }
 
   function enterViewer() {
     if (!selected.length) return;
     const autoplay = document.getElementById('optAutoplay').checked;
-    const maxQuality = document.getElementById('optQuality').checked;
+    const qualityChoice = document.getElementById('optQuality').value;
     const unmuted = unmutedLogin || selected[0].login;
-    const perRowInput = parseInt(document.getElementById('optPerRow').value, 10);
-    const maxPerRow = perRowInput > 0 ? perRowInput : null;
 
     const parents = ['claude.ai','claude.site','claudeusercontent.com','localhost'];
     const currentHost = location.hostname;
     if (currentHost && !parents.includes(currentHost)) parents.push(currentHost);
 
-    const { rowsK } = computeJustifiedRows(selected.length, window.innerWidth, window.innerHeight, maxPerRow);
-
     viewerGrid.innerHTML = '';
     activePlayers = [];
     viewerChannelCount = selected.length;
 
-    let idx = 0;
-    rowsK.forEach(k => {
-      const rowEl = document.createElement('div');
-      rowEl.className = 'row';
-      for (let i = 0; i < k; i++) {
-        const s = selected[idx];
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        const target = document.createElement('div');
-        const targetId = 'watch-player-' + idx;
-        target.id = targetId;
-        cell.appendChild(target);
-        rowEl.appendChild(cell);
-
-        const player = new Twitch.Player(targetId, {
-          width: '100%',
-          height: '100%',
-          channel: s.login,
-          parent: parents,
-          autoplay: autoplay,
-          muted: s.login !== unmuted
-        });
-        if (maxQuality) {
-          player.addEventListener(Twitch.Player.READY, () => {
-            try { player.setQuality('chunked'); } catch (e) {}
-          });
-        }
-        activePlayers.push(player);
-        idx++;
-      }
-      viewerGrid.appendChild(rowEl);
+    // Pass 1: build every cell and attach it to the document first —
+    // Twitch.Player requires its target element to already be in the DOM.
+    const targets = [];
+    selected.forEach((s, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      const target = document.createElement('div');
+      const targetId = 'watch-player-' + i;
+      target.id = targetId;
+      cell.appendChild(target);
+      viewerGrid.appendChild(cell);
+      targets.push({ targetId, channel: s.login });
     });
 
     document.body.classList.add('viewing');
     viewerGrid.classList.add('active');
     applyViewerSizing();
+
+    // Pass 2: now that every target div is actually in the document,
+    // create the Twitch players.
+    targets.forEach(({ targetId, channel }) => {
+      const player = new Twitch.Player(targetId, {
+        width: '100%',
+        height: '100%',
+        channel: channel,
+        parent: parents,
+        autoplay: autoplay,
+        muted: channel !== unmuted
+      });
+      player.addEventListener(Twitch.Player.READY, () => applyQuality(player, qualityChoice));
+      activePlayers.push(player);
+    });
 
     if (document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen().catch(() => {});
@@ -727,12 +770,16 @@
   }
 
   document.getElementById('launchBtn').addEventListener('click', enterViewer);
+  document.getElementById('backToConfigBtn').addEventListener('click', exitViewer);
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && document.body.classList.contains('viewing')) exitViewer();
   });
 
   window.addEventListener('resize', () => {
+    if (document.body.classList.contains('viewing')) applyViewerSizing();
+  });
+  document.addEventListener('fullscreenchange', () => {
     if (document.body.classList.contains('viewing')) applyViewerSizing();
   });
 
