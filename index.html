@@ -224,63 +224,64 @@
 
   const IGNORE = new Set(['.github', '.git', 'assets', 'img', 'images']);
 
+  const CACHE_KEY = `hub-dirs-${OWNER}-${REPO}`;
+  const CACHE_TTL = 5 * 60 * 1000; // 5 min — évite de re-solliciter l'API à chaque rechargement pendant les tests
+
   async function loadProjects() {
     const projects = await loadRemoteProjects();
     if (projects === null) { renderError(); return; }
     render([...projects, ...externalLinks]);
   }
 
+  async function getRootDirs() {
+    // Cache court côté navigateur : un seul appel api.github.com toutes les 5 min max
+    try {
+      const cached = JSON.parse(localStorage.getItem(CACHE_KEY));
+      if (cached && Date.now() - cached.time < CACHE_TTL) return cached.dirs;
+    } catch (e) { /* pas de cache valide */ }
+
+    const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/`, { cache: 'no-store' });
+    if (!res.ok) throw new Error('api');
+    const items = await res.json();
+    const dirs = items
+      .filter(i => i.type === 'dir' && !i.name.startsWith('.') && !IGNORE.has(i.name))
+      .map(i => i.name);
+
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ time: Date.now(), dirs })); } catch (e) {}
+    return dirs;
+  }
+
   async function loadRemoteProjects() {
     let dirs = [];
     try {
-      const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/`, { cache: 'no-store' });
-      if (!res.ok) throw new Error('api');
-      const items = await res.json();
-      dirs = items.filter(i => i.type === 'dir' && !i.name.startsWith('.') && !IGNORE.has(i.name));
+      dirs = await getRootDirs();
     } catch (e) {
       return null;
     }
 
-    return Promise.all(dirs.map(async d => {
-      // liste le contenu réel du dossier pour trouver le bon fichier HTML
-      let files = [];
-      try {
-        const r = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${d.name}`, { cache: 'no-store' });
-        if (r.ok) files = await r.json();
-      } catch (e) { /* dossier illisible, on retombe sur des valeurs par défaut */ }
-
-      const metaFile = files.find(f => f.name.toLowerCase() === 'meta.json');
+    return Promise.all(dirs.map(async name => {
+      // meta.json lu via raw.githubusercontent.com : non soumis au quota de api.github.com
       let meta = null;
-      if (metaFile) {
-        try {
-          const r = await fetch(`${metaFile.download_url}?_=${Date.now()}`, { cache: 'no-store' });
-          if (r.ok) meta = await r.json();
-        } catch (e) { /* meta.json illisible */ }
-      }
+      try {
+        const r = await fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${name}/meta.json?_=${Date.now()}`, { cache: 'no-store' });
+        if (r.ok) meta = await r.json();
+      } catch (e) { /* pas de meta.json */ }
 
-      const htmlFiles = files.filter(f => f.type === 'file' && f.name.toLowerCase().endsWith('.html'));
-      const indexFile = htmlFiles.find(f => f.name.toLowerCase() === 'index.html');
-
-      let entry = null;
-      let ambiguous = false;
-      if (meta?.entry) {
-        entry = meta.entry;
-      } else if (indexFile) {
-        entry = indexFile.name;
-      } else if (htmlFiles.length === 1) {
-        entry = htmlFiles[0].name;
-      } else if (htmlFiles.length > 1) {
-        entry = htmlFiles[0].name;
-        ambiguous = true; // plusieurs .html trouvés, précise "entry" dans meta.json pour choisir
-      }
+      // fichier d'entrée : "entry" dans meta.json, sinon index.html par défaut
+      const entry = meta?.entry || 'index.html';
+      let entryOk = true;
+      try {
+        const head = await fetch(`./${name}/${entry}`, { method: 'HEAD', cache: 'no-store' });
+        entryOk = head.ok;
+      } catch (e) { entryOk = false; }
 
       return {
-        name: meta?.name || humanize(d.name),
+        name: meta?.name || humanize(name),
         desc: meta?.desc || "Aucune description fournie.",
         tags: meta?.tags || [],
         status: meta?.status === 'live' ? 'live' : 'dev',
-        href: entry ? `./${d.name}/${entry}` : `./${d.name}/`,
-        ambiguous
+        href: entryOk ? `./${name}/${entry}` : `./${name}/`,
+        ambiguous: !entryOk
       };
     }));
   }
@@ -306,7 +307,7 @@
           <div class="p-head">
             <span class="p-name">${p.name}</span>
             <span class="p-status"><i class="dot ${p.status}"></i>${p.status === 'live' ? 'en ligne' : 'en développement'}</span>
-            ${p.ambiguous ? `<span class="p-status" style="color:var(--amber)">⚠ plusieurs .html — préciser "entry" dans meta.json</span>` : ''}
+            ${p.ambiguous ? `<span class="p-status" style="color:var(--amber)">⚠ fichier introuvable — vérifier "entry" dans meta.json</span>` : ''}
           </div>
           <div class="p-desc">${p.desc}</div>
           ${p.tags.length ? `<div class="p-tags">${p.tags.map(t => `<span class="p-tag">${t}</span>`).join('')}</div>` : ''}

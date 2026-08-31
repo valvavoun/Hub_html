@@ -3,4 +3,5 @@
   "desc": "Permet de regarder plusieurs streams Twitch en même temps",
   "tags": ["Twitch", "multistream", "streaming"],
   "status": "live"
+  "entry": "multistream.html"
 }
