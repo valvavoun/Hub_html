@@ -218,12 +218,9 @@
   ];
   // --------------------------------------
 
-  const IS_LOCAL = ['localhost', '127.0.0.1', ''].includes(location.hostname);
   const board = document.getElementById('board');
   const statusLine = document.getElementById('status');
-  document.getElementById('foot-owner').textContent = IS_LOCAL
-    ? `${OWNER}/${REPO} (meta.json lu en local si présent)`
-    : `${OWNER}/${REPO}`;
+  document.getElementById('foot-owner').textContent = `${OWNER}/${REPO}`;
 
   const IGNORE = new Set(['.github', '.git', 'assets', 'img', 'images']);
 
@@ -245,7 +242,7 @@
     }
 
     return Promise.all(dirs.map(async d => {
-      // liste le contenu réel du dossier (sur GitHub) pour trouver le bon fichier HTML
+      // liste le contenu réel du dossier pour trouver le bon fichier HTML
       let files = [];
       try {
         const r = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${d.name}`, { cache: 'no-store' });
@@ -254,17 +251,7 @@
 
       const metaFile = files.find(f => f.name.toLowerCase() === 'meta.json');
       let meta = null;
-
-      // En local (Live Server), on essaie d'abord de lire meta.json sur le disque
-      // pour voir les modifications sans push. Si le dossier n'existe pas encore
-      // en local (juste créé sur GitHub), on retombe sur la version distante.
-      if (IS_LOCAL) {
-        try {
-          const r = await fetch(`./${d.name}/meta.json?_=${Date.now()}`, { cache: 'no-store' });
-          if (r.ok) meta = await r.json();
-        } catch (e) { /* pas de version locale */ }
-      }
-      if (!meta && metaFile) {
+      if (metaFile) {
         try {
           const r = await fetch(`${metaFile.download_url}?_=${Date.now()}`, { cache: 'no-store' });
           if (r.ok) meta = await r.json();
