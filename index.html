@@ -342,9 +342,18 @@
         },
       ];
 
-      const board = document.getElementById("board");
-      const statusLine = document.getElementById("status");
-      document.getElementById("foot-owner").textContent = `${OWNER}/${REPO}`;
+  // ---- À configurer une seule fois ----
+  const OWNER  = "valvavoun";
+  const REPO   = "Hub_html";
+  const BRANCH = "main";
+  // Liens externes (autres repos, hors scan automatique) — optionnel
+  const externalLinks = [
+    { name: "MXGP Livetiming", desc: "Classements temps réel MXGP.", tags: ["SignalR","Firebase"], status: "live", href: "https://valvavoun.github.io/Livetiming/" }
+  ];
+
+  const board = document.getElementById("board");
+  const statusLine = document.getElementById("status");
+  document.getElementById("foot-owner").textContent = `${OWNER}/${REPO}`;
 
       const IGNORE = new Set([".github", ".git", "assets", "img", "images"]);
 
