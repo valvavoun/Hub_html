@@ -326,9 +326,14 @@
       const BRANCH = "main";
       // Liens externes (autres repos, hors scan automatique) — optionnel
       const externalLinks = [
-        // { name: "MXGP Livetiming", desc: "Classements temps réel MXGP.", tags: ["SignalR","Firebase"], status: "live", href: "https://valvavoun.github.io/Livetiming/" }
+        {
+          name: "MXGP Livetiming",
+          desc: "Classements temps réel MXGP.",
+          tags: ["MXGP", "Livetiming"],
+          status: "live",
+          href: "https://valvavoun.github.io/Livetiming/",
+        },
       ];
-      // --------------------------------------
 
       const board = document.getElementById("board");
       const statusLine = document.getElementById("status");
