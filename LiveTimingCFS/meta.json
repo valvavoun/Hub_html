@@ -3,5 +3,5 @@
   "desc": "Live timing pour le championnat de France des sables",
   "tags": ["Mx", "Livetiming"],
   "status": "live",
-  "entry": "LiveTimingCFS.html"
+  "entry": "live_timing_cfs.html"
 }
