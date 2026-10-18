@@ -1,0 +1,2669 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Live Timing – Courses sur sable</title>
+    <style>
+      :root {
+        --bg: #090c12;
+        --p1: #111723;
+        --p2: #171f2e;
+        --ln: #1f2a3c;
+        --tx: #e9eef7;
+        --mu: #7d8aa3;
+        --ac: #ff4d00;
+        --pb: #22c55e;
+        --sb: #c04dff;
+        --up: #22c55e;
+        --dn: #ef4444;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      body {
+        background: radial-gradient(
+          1200px 500px at 50% -200px,
+          #1a2338,
+          var(--bg)
+        );
+        background-color: var(--bg);
+        color: var(--tx);
+        font-family:
+          Inter,
+          system-ui,
+          Segoe UI,
+          Arial,
+          sans-serif;
+        min-height: 100vh;
+      }
+      .top {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 14px 24px;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--ln);
+        background: rgba(9, 12, 18, 0.85);
+        backdrop-filter: blur(8px);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        min-width: 220px;
+      }
+      .logo {
+        width: 8px;
+        height: 38px;
+        background: var(--ac);
+        border-radius: 3px;
+        transform: skewX(-14deg);
+      }
+      h1 {
+        font-size: 20px;
+        letter-spacing: 0.3px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+      .sub {
+        font-size: 12px;
+        color: var(--mu);
+        margin-top: 2px;
+      }
+      .live {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        padding: 4px 9px;
+        border-radius: 99px;
+        background: #0f2a1a;
+        color: var(--pb);
+        border: 1px solid #14532d;
+      }
+      .live i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+        animation: pl 1.2s infinite;
+      }
+      .live.off {
+        background: #2a0f0f;
+        color: var(--dn);
+        border-color: #7f1d1d;
+      }
+      .live.off i {
+        animation: none;
+      }
+      @keyframes pl {
+        50% {
+          opacity: 0.25;
+        }
+      }
+      .clock {
+        display: flex;
+        gap: 22px;
+      }
+      .clock div {
+        text-align: center;
+      }
+      .clock small {
+        display: block;
+        font-size: 10px;
+        letter-spacing: 1.5px;
+        color: var(--mu);
+        text-transform: uppercase;
+      }
+      .clock b {
+        font-size: 26px;
+        font-variant-numeric: tabular-nums;
+        font-weight: 800;
+      }
+      .flag {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-weight: 800;
+        font-size: 13px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        background: #0f2a1a;
+        color: #4ade80;
+        border: 1px solid #14532d;
+      }
+      .flag.yel {
+        background: #2a2408;
+        color: #facc15;
+        border-color: #713f12;
+      }
+      .flag.red {
+        background: #2a0f0f;
+        color: #f87171;
+        border-color: #7f1d1d;
+      }
+      .flag.chk {
+        background: repeating-conic-gradient(#fff 0 25%, #111 0 50%) 0 0/14px
+          14px;
+        color: #000;
+        border-color: #fff;
+      }
+      .flag.chk span {
+        background: #fff;
+        padding: 2px 6px;
+        border-radius: 4px;
+      }
+      .prog {
+        height: 3px;
+        background: var(--ln);
+      }
+      .prog i {
+        display: block;
+        height: 100%;
+        background: linear-gradient(90deg, var(--ac), #ffb300);
+        width: 0;
+        transition: width 1s linear;
+      }
+      main {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 18px 16px 40px;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      .card {
+        background: linear-gradient(180deg, var(--p2), var(--p1));
+        border: 1px solid var(--ln);
+        border-radius: 12px;
+        padding: 12px 14px;
+        position: relative;
+        overflow: hidden;
+      }
+      .card:before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--c, var(--ln));
+      }
+      .card small {
+        font-size: 10px;
+        letter-spacing: 1.5px;
+        color: var(--mu);
+        text-transform: uppercase;
+      }
+      .card .big {
+        font-size: 22px;
+        font-weight: 800;
+        margin: 4px 0 2px;
+        font-variant-numeric: tabular-nums;
+      }
+      .card .nm {
+        font-size: 14px;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .card .mt {
+        font-size: 12px;
+        color: var(--mu);
+        margin-top: 2px;
+      }
+      .card.g1 {
+        --c: #facc15;
+      }
+      .card.g2 {
+        --c: #cbd5e1;
+      }
+      .card.g3 {
+        --c: #d98a4a;
+      }
+      .card.bl {
+        --c: var(--sb);
+      }
+      .msgs {
+        font-size: 13px;
+        color: var(--mu);
+        background: var(--p1);
+        border: 1px solid var(--ln);
+        border-radius: 10px;
+        padding: 8px 12px;
+        margin-bottom: 12px;
+        display: none;
+      }
+      .tools {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 12px;
+        align-items: center;
+      }
+      .tools input {
+        flex: 1;
+        min-width: 200px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--ln);
+        background: var(--p1);
+        color: var(--tx);
+        font-size: 14px;
+        outline: none;
+      }
+      .tools input:focus {
+        border-color: var(--ac);
+      }
+      .chip {
+        padding: 7px 12px;
+        border-radius: 99px;
+        border: 1px solid var(--ln);
+        background: var(--p1);
+        color: var(--mu);
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        user-select: none;
+      }
+      .chip.on {
+        background: var(--ac);
+        border-color: var(--ac);
+        color: #fff;
+      }
+      .wrap {
+        background: var(--p1);
+        border: 1px solid var(--ln);
+        border-radius: 12px;
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      th {
+        position: sticky;
+        top: 0;
+        background: #0d1320;
+        text-align: left;
+        font-size: 10px;
+        letter-spacing: 1.4px;
+        text-transform: uppercase;
+        color: var(--mu);
+        padding: 10px 10px;
+        border-bottom: 1px solid var(--ln);
+        white-space: nowrap;
+      }
+      td {
+        padding: 8px 10px;
+        border-bottom: 1px solid #151d2c;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+      tr:hover td {
+        background: #141c2b;
+      }
+      td.pos {
+        font-weight: 800;
+        font-size: 16px;
+        width: 46px;
+      }
+      tr.r1 td.pos {
+        color: #facc15;
+      }
+      tr.r2 td.pos {
+        color: #cbd5e1;
+      }
+      tr.r3 td.pos {
+        color: #d98a4a;
+      }
+      td.mv {
+        width: 46px;
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .mv.u {
+        color: var(--up);
+      }
+      .mv.d {
+        color: var(--dn);
+      }
+      .num {
+        display: inline-block;
+        min-width: 38px;
+        text-align: center;
+        padding: 3px 7px;
+        border-radius: 6px;
+        background: #fff;
+        color: #0b0e14;
+        font-weight: 900;
+        font-size: 13px;
+      }
+      td.nom {
+        font-weight: 700;
+      }
+      .mk {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 5px;
+        font-size: 11px;
+        font-weight: 800;
+        color: #fff;
+        background: var(--c, #475569);
+      }
+      td.club {
+        color: var(--mu);
+        font-size: 12px;
+        max-width: 220px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      td.gap {
+        color: #cbd5e1;
+      }
+      td.pb {
+        color: var(--pb);
+        font-weight: 800;
+      }
+      td.sb {
+        color: var(--sb);
+        font-weight: 800;
+      }
+      td.st {
+        width: 32px;
+        cursor: pointer;
+        color: #475569;
+        font-size: 16px;
+        user-select: none;
+      }
+
+      td {
+        transition: background 0.6s;
+      }
+      tr.gain td {
+        background: rgba(34, 197, 94, 0.28) !important;
+      }
+      tr.gain td:first-child {
+        box-shadow: inset 4px 0 0 var(--up);
+      }
+      tr.loss td {
+        background: rgba(239, 68, 68, 0.28) !important;
+      }
+      tr.loss td:first-child {
+        box-shadow: inset 4px 0 0 var(--dn);
+      }
+      .foot {
+        margin-top: 14px;
+        font-size: 12px;
+        color: var(--mu);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 18px;
+      }
+      .dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        margin-right: 5px;
+        vertical-align: middle;
+      }
+      #err {
+        display: none;
+        margin-bottom: 12px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: #2a0f0f;
+        color: #fca5a5;
+        font-size: 13px;
+        border: 1px solid #7f1d1d;
+      }
+      @media (max-width: 780px) {
+        .club,
+        .i1,
+        .i2 {
+          display: none;
+        }
+        .clock b {
+          font-size: 20px;
+        }
+        h1 {
+          font-size: 16px;
+        }
+        td,
+        th {
+          padding: 7px 6px;
+        }
+      }
+
+      /* ===== STYLE MODERNE ===== */
+      body {
+        font-family: Inter, "Segoe UI", system-ui, sans-serif;
+        padding-bottom: 70px;
+      }
+      .top {
+        background: rgba(9, 12, 18, 0.7);
+        backdrop-filter: blur(14px) saturate(140%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      }
+      h1 {
+        font-size: 22px;
+        background: linear-gradient(90deg, #fff, #ffb089);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .logo {
+        background: linear-gradient(180deg, #ff7a2f, #ff2d00);
+        box-shadow: 0 0 18px rgba(255, 77, 0, 0.6);
+      }
+      .clock b {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+      }
+      .flag {
+        border-radius: 99px;
+      }
+      .wrap {
+        background: none;
+        border: none;
+        border-radius: 0;
+      }
+      table {
+        border-collapse: separate;
+        border-spacing: 0 5px;
+      }
+      th {
+        background: none;
+        border: none;
+        padding: 6px 12px;
+      }
+      td {
+        background: rgba(255, 255, 255, 0.04);
+        border: none;
+        padding: 11px 12px;
+      }
+      td:first-child {
+        border-radius: 12px 0 0 12px;
+      }
+      td:last-child {
+        border-radius: 0 12px 12px 0;
+      }
+      tr:hover td {
+        background: rgba(255, 255, 255, 0.08);
+      }
+      td.pos {
+        font-size: 18px;
+      }
+      .num {
+        background: linear-gradient(180deg, #fff, #d4dbe8);
+        border-radius: 8px;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+      }
+      .mk {
+        border-radius: 99px;
+        padding: 3px 11px;
+      }
+      .tools input {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+      }
+      .chip {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+      .chip.on {
+        background: linear-gradient(180deg, #ff7a2f, #ff4d00);
+        box-shadow: 0 2px 12px rgba(255, 77, 0, 0.45);
+      }
+      .ticker {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 52px;
+        overflow: hidden;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        background: rgba(9, 12, 18, 0.88);
+        backdrop-filter: blur(14px);
+        border-top: 2px solid var(--ac);
+      }
+      .trk {
+        display: flex;
+        width: max-content;
+        white-space: nowrap;
+        animation: tk 60s linear infinite;
+      }
+      .ticker:hover .trk {
+        animation-play-state: paused;
+      }
+      .set {
+        display: flex;
+      }
+      @keyframes tk {
+        to {
+          transform: translateX(-50%);
+        }
+      }
+      .ti {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 0 28px;
+        font-size: 14px;
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        color: #cbd5e1;
+      }
+      .ti b {
+        color: #fff;
+      }
+      .ti .k {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--mu);
+      }
+      .ti.g1 .k {
+        color: #facc15;
+      }
+      .ti.g2 .k {
+        color: #cbd5e1;
+      }
+      .ti.g3 .k {
+        color: #d98a4a;
+      }
+      .ti.bl .k {
+        color: var(--sb);
+      }
+      .ti.ms .k {
+        color: var(--ac);
+      }
+      tr.fav td {
+        background: var(--fb);
+      }
+      tbody tr {
+        cursor: pointer;
+      }
+      .fire {
+        margin-left: 6px;
+      }
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 72px;
+        transform: translate(-50%, 20px);
+        opacity: 0;
+        pointer-events: none;
+        z-index: 40;
+        background: #1b1230;
+        border: 1px solid var(--sb);
+        color: #fff;
+        padding: 12px 18px;
+        border-radius: 12px;
+        font-weight: 700;
+        box-shadow: 0 8px 30px rgba(192, 77, 255, 0.35);
+        transition: 0.3s;
+        max-width: 92vw;
+      }
+      .toast.on {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+      .fiche {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 52px;
+        width: 390px;
+        max-width: 100vw;
+        overflow: auto;
+        z-index: 30;
+        padding: 18px;
+        background: rgba(12, 16, 26, 0.94);
+        backdrop-filter: blur(16px);
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        transform: translateX(100%);
+        transition: transform 0.3s;
+      }
+      .fiche.open {
+        transform: none;
+      }
+      .fiche .x {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: rgba(255, 255, 255, 0.08);
+        border: none;
+        color: #fff;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .fh {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin: 6px 40px 14px 0;
+      }
+      .fn {
+        font-size: 19px;
+        font-weight: 800;
+      }
+      .fs {
+        font-size: 12px;
+        color: var(--mu);
+        margin-top: 2px;
+      }
+      .kv {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+      .kv div {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 8px 10px;
+      }
+      .kv small {
+        display: block;
+        font-size: 10px;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+        color: var(--mu);
+      }
+      .kv b {
+        font-size: 15px;
+        font-variant-numeric: tabular-nums;
+      }
+      .fiche h3 {
+        font-size: 11px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--mu);
+        margin: 16px 0 6px;
+      }
+      .fiche svg {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 10px;
+      }
+      .fiche svg text {
+        fill: #8a96ad;
+        font-size: 10px;
+      }
+      .fiche .gl {
+        stroke: #26324a;
+        stroke-width: 1;
+      }
+      .nd {
+        font-size: 12px;
+        color: var(--mu);
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 10px;
+        margin-bottom: 6px;
+      }
+      @media (max-width: 780px) {
+        .gp {
+          display: none;
+        }
+      }
+
+      /* ===== TABLEAU ENTIER, SANS SCROLL ===== */
+      main {
+        max-width: 1700px;
+      }
+      .wrap {
+        overflow: visible;
+      }
+      table {
+        width: 100%;
+        table-layout: auto;
+      }
+      td.club {
+        max-width: 170px;
+      }
+      .top .tools {
+        flex: 1 1 100%;
+        margin: 0;
+      }
+      @media (max-width: 1300px) {
+        .i1,
+        .i2 {
+          display: none;
+        }
+      }
+      @media (max-width: 1100px) {
+        .club {
+          display: none;
+        }
+        td,
+        th {
+          padding: 9px 7px;
+        }
+      }
+      @media (max-width: 780px) {
+        .top {
+          position: static;
+        }
+        table {
+          font-size: 12px;
+        }
+        td,
+        th {
+          padding: 8px 4px;
+        }
+        .num {
+          min-width: 30px;
+          padding: 2px 5px;
+          font-size: 12px;
+        }
+        td.pos {
+          width: auto;
+          font-size: 15px;
+        }
+        td.mv {
+          width: auto;
+        }
+        .mk {
+          padding: 2px 7px;
+          font-size: 10px;
+        }
+        td.nom {
+          white-space: normal;
+        }
+        td.st {
+          width: auto;
+        }
+      }
+      .grp {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        padding: 6px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .gl2 {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 1.4px;
+        text-transform: uppercase;
+        color: var(--mu);
+        margin-right: 2px;
+      }
+      .dd {
+        position: relative;
+      }
+      .ddb {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--tx);
+        font-family: inherit;
+        font-size: 13px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .ddb b {
+        font-weight: 700;
+      }
+      .ddb i {
+        font-style: normal;
+        font-size: 10px;
+        color: var(--mu);
+        transition: transform 0.2s;
+      }
+      .dd.open .ddb i {
+        transform: rotate(180deg);
+      }
+      .ddb:hover,
+      .dd.open .ddb {
+        border-color: var(--ac);
+      }
+      .ddb.act {
+        background: linear-gradient(180deg, #ff7a2f, #ff4d00);
+        border-color: transparent;
+        box-shadow: 0 2px 12px rgba(255, 77, 0, 0.4);
+      }
+      .ddb.act .gl2,
+      .ddb.act i {
+        color: rgba(255, 255, 255, 0.85);
+      }
+      .ddp {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        min-width: 210px;
+        max-height: 330px;
+        overflow: auto;
+        z-index: 60;
+        padding: 6px;
+        border-radius: 14px;
+        background: rgba(15, 20, 32, 0.97);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+        display: none;
+      }
+      .dd.open .ddp {
+        display: block;
+      }
+      .opt {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 9px 12px;
+        border-radius: 9px;
+        font-size: 13px;
+        cursor: pointer;
+        color: #cbd5e1;
+        white-space: nowrap;
+      }
+      .opt:hover {
+        background: rgba(255, 255, 255, 0.07);
+        color: #fff;
+      }
+      .opt.on {
+        background: rgba(255, 77, 0, 0.2);
+        color: #fff;
+        font-weight: 700;
+      }
+      .opt em {
+        margin-left: auto;
+        padding-left: 14px;
+        font-style: normal;
+        font-size: 11px;
+        color: var(--mu);
+      }
+      .dt {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .brand {
+        flex: 0 0 auto;
+      }
+      .top .tools {
+        flex: 1 1 380px;
+        min-width: 0;
+        margin: 0;
+        justify-content: center;
+      }
+      .top .tools input {
+        flex: 1 1 150px;
+        min-width: 130px;
+        max-width: 300px;
+      }
+      .fiche {
+        width: 440px;
+      }
+      .cvw svg {
+        display: block;
+      }
+      .crv {
+        fill: none;
+        stroke-width: 2;
+        opacity: 0.85;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        transition:
+          opacity 0.15s,
+          stroke-width 0.15s;
+      }
+      .crv.me {
+        stroke-width: 4.5;
+        opacity: 1;
+      }
+      .crv.on {
+        stroke-width: 4.5;
+        opacity: 1;
+      }
+      .crv.dim,
+      .fiche svg circle.dim {
+        opacity: 0.15;
+      }
+      .hit {
+        fill: none;
+        stroke: transparent;
+        stroke-width: 14;
+        pointer-events: stroke;
+        cursor: pointer;
+      }
+      .fiche svg circle {
+        transition: opacity 0.15s;
+      }
+      .seg {
+        display: flex;
+        gap: 4px;
+        margin: 8px 0 4px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 3px;
+        border-radius: 10px;
+      }
+      .seg button {
+        flex: 1;
+        border: none;
+        background: none;
+        color: var(--mu);
+        padding: 6px 4px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .seg button.on {
+        background: linear-gradient(180deg, #ff7a2f, #ff4d00);
+        color: #fff;
+      }
+      .lgw {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 12px;
+        margin-top: 12px;
+        font-size: 12px;
+        color: #cbd5e1;
+      }
+      .lg {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: opacity 0.15s;
+      }
+      .lg i {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .lg.me {
+        font-weight: 800;
+        color: #fff;
+      }
+      .lg.dim {
+        opacity: 0.3;
+      }
+      .tip {
+        position: fixed;
+        z-index: 80;
+        pointer-events: none;
+        background: #0b0f18;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        opacity: 0;
+        transition: opacity 0.1s;
+        white-space: nowrap;
+      }
+      .tip.on {
+        opacity: 1;
+      }
+      .fiche {
+        width: min(980px, 100vw);
+      }
+      .fiche svg text.ini {
+        fill: #fff;
+        text-anchor: middle;
+        font-weight: 800;
+        pointer-events: none;
+        paint-order: stroke;
+        stroke: rgba(0, 0, 0, 0.4);
+        stroke-width: 1.2px;
+      }
+      .fiche svg text.ax {
+        font-size: 11px;
+      }
+      .fiche svg circle.pt {
+        stroke: #0b0f18;
+        stroke-width: 1.5;
+        cursor: pointer;
+        transition: opacity 0.15s;
+      }
+      .fiche svg circle.pt.me {
+        stroke: #fff;
+        stroke-width: 2.5;
+      }
+      .crv {
+        stroke-width: 2.4;
+      }
+      .crv.dim,
+      .fiche svg circle.pt.dim,
+      .fiche svg text.ini.dim {
+        opacity: 0.15;
+      }
+      .lg i {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        font-size: 8px;
+        font-style: normal;
+        font-weight: 800;
+        color: #fff;
+      }
+      .fem {
+        color: #ff5ca8 !important;
+      }
+      .flag.chk {
+        min-width: 110px;
+        min-height: 36px;
+      }
+      .flag.chk span {
+        display: none;
+      }
+      .crv,
+      .crv.me {
+        stroke-width: 2.8;
+        opacity: 0.92;
+      }
+      .crv.on {
+        stroke-width: 4.2;
+        opacity: 1;
+      }
+      .crv.dim {
+        opacity: 0.15;
+      }
+      .fiche svg circle.pt {
+        stroke-width: 2;
+      }
+      .fiche svg circle.pt.me {
+        stroke: #fff;
+        stroke-width: 2;
+      }
+      .fiche svg text.ini {
+        font-size: 10px;
+        font-weight: 700;
+        dominant-baseline: central;
+        text-anchor: middle;
+        stroke: none;
+        font-family: Inter, "Segoe UI", system-ui, sans-serif;
+      }
+      .fiche svg text.ax {
+        fill: #9aa7bd;
+      }
+      .fiche .gl.v {
+        stroke: #1c2638;
+        stroke-dasharray: 2 4;
+      }
+      .fiche svg circle.pt {
+        stroke: none;
+      }
+      .fiche svg circle.pt.me {
+        stroke: #fff;
+        stroke-width: 1;
+      }
+      .pg {
+        transition: opacity 0.15s;
+      }
+      .pg.dim {
+        opacity: 0.15;
+      }
+      .fiche svg text.ini {
+        opacity: 1;
+      }
+      .crv,
+      .crv.me {
+        stroke-width: 2;
+        opacity: 0.9;
+      }
+      .crv.on {
+        stroke-width: 3;
+        opacity: 1;
+      }
+      .crv.dim {
+        opacity: 0.15;
+      }
+      .fiche svg text.ini {
+        font-size: 9px;
+      }
+
+      /* ===== Style des courbes (identique au graphique de référence) ===== */
+      .fiche svg path.crv,
+      .fiche svg path.crv.me {
+        fill: none;
+        stroke-width: 2;
+        opacity: 1;
+        stroke-linecap: butt;
+        stroke-linejoin: miter;
+      }
+      .fiche svg path.crv.on {
+        stroke-width: 2; /* mets 3 pour garder l'effet de survol */
+        opacity: 1;
+      }
+      .fiche svg path.crv.dim {
+        opacity: 0.15;
+      }
+      .fiche svg circle.pt,
+      .fiche svg circle.pt.me {
+        stroke: none;
+        stroke-width: 0;
+      }
+      .fiche svg text.ini {
+        font-size: 7px;
+        font-weight: 600;
+        font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+          "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        text-anchor: middle;
+        dominant-baseline: central;
+        stroke: none;
+        paint-order: normal;
+        pointer-events: none;
+      }
+      .fiche svg text.ini.dim,
+      .fiche svg circle.pt.dim {
+        opacity: 0.15;
+      }
+      /* ===== DÉFILEMENT MODERNE (partout) ===== */
+      * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.22) transparent; }
+      *::-webkit-scrollbar { width: 10px; height: 10px; }
+      *::-webkit-scrollbar-track { background: transparent; }
+      *::-webkit-scrollbar-corner { background: transparent; }
+      *::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,.2); border-radius: 99px;
+        border: 3px solid transparent; background-clip: padding-box;
+      }
+      *::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.4); border: 3px solid transparent; background-clip: padding-box; }
+      .ddp { overflow: hidden; max-height: none; padding: 6px; }
+      .ddl { max-height: min(320px, 55vh); overflow-y: auto; overscroll-behavior: contain; padding-right: 2px; }
+      .ddl::-webkit-scrollbar { width: 8px; }
+      .fiche { scrollbar-gutter: stable; }
+
+      /* ===== TÉLÉPHONE (petits écrans uniquement, le PC ne change pas) ===== */
+      @media (max-width: 600px) {
+        body { padding-bottom: 60px; }
+        main { padding: 10px 8px 24px; }
+        .top { padding: 12px; gap: 10px 12px; }
+        .brand { order: 1; flex: 1 1 100%; min-width: 0; }
+        h1 { font-size: 18px; }
+        .flag { order: 2; padding: 6px 12px; font-size: 12px; }
+        .clock { order: 2; margin-left: auto; gap: 16px; }
+        .clock b { font-size: 20px; }
+        .top .tools { order: 3; flex: 1 1 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; position: relative; }
+        .top .tools input { grid-column: 1 / -1; width: 100%; max-width: none; min-width: 0; font-size: 16px; padding: 11px 12px; }
+        .dd { position: static; }
+        .ddb { position: relative; width: 100%; flex-direction: column; align-items: flex-start; gap: 1px; padding: 7px 24px 7px 10px; }
+        .ddb .gl2 { font-size: 9px; margin: 0; }
+        .ddb b { font-size: 13px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .ddb i { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); }
+        .dd.open .ddb i { transform: translateY(-50%) rotate(180deg); }
+        .ddp { left: 0; right: 0; min-width: 0; }
+        .opt { padding: 12px; font-size: 14px; }
+        table { font-size: 12px; border-spacing: 0 4px; }
+        th:nth-child(5), td:nth-child(5), th:nth-child(11), td:nth-child(11) { display: none; }
+        th { font-size: 9px; letter-spacing: .6px; padding: 4px; }
+        td { padding: 9px 4px; }
+        td.pos { font-size: 14px; width: auto; }
+        td.mv { font-size: 10px; width: auto; padding: 9px 2px; }
+        td.nom { white-space: normal; line-height: 1.2; word-break: break-word; }
+        td.st { font-size: 19px; padding: 9px 7px; }
+        .num { min-width: 28px; padding: 2px 4px; font-size: 12px; }
+        .foot { font-size: 11px; gap: 4px 12px; }
+        .ticker { height: 44px; }
+        .ti { padding: 0 16px; font-size: 12px; }
+        .toast { bottom: 56px; font-size: 13px; }
+        .fiche { width: 100vw; bottom: 44px; padding: 14px 10px; }
+        .fiche .x { width: 40px; height: 40px; top: 8px; right: 8px; }
+        .fn { font-size: 17px; }
+        .fiche .cvw { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; }
+        .fiche .cvw svg { min-width: 700px; }
+        .seg { flex-wrap: wrap; }
+        .seg button { flex: 1 1 28%; padding: 9px 4px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <h1 id="titre">Live Timing</h1>
+          <div class="sub">
+            Courses sur sable ·
+            <span class="live" id="live"
+              ><i></i><span id="livet">LIVE</span></span
+            >
+          </div>
+        </div>
+      </div>
+      <div class="tools">
+        <input
+          id="q"
+          type="search"
+          placeholder="Rechercher un pilote, un numéro, un club…"
+        />
+        <div class="dd" id="ddm">
+          <button class="ddb">
+            <span class="gl2">Marque</span><b>Toutes</b><i>▾</i>
+          </button>
+          <div class="ddp"><div class="ddl" id="chips"></div></div>
+        </div>
+        <div class="dd" id="gs">
+          <button class="ddb">
+            <span class="gl2">Sexe</span><b>Tous</b><i>▾</i>
+          </button>
+          <div class="ddp">
+            <div class="opt on" data-s="">Tous</div>
+            <div class="opt" data-s="Homme">Hommes</div>
+            <div class="opt" data-s="Femme">Femmes</div>
+          </div>
+        </div>
+        <div class="dd" id="gf">
+          <button class="ddb">
+            <span class="gl2">Favoris</span><b>Tous</b><i>▾</i>
+          </button>
+          <div class="ddp">
+            <div class="opt on" data-f="">Tous</div>
+            <div class="opt" data-f="1">★ Favoris</div>
+          </div>
+        </div>
+      </div>
+      <div class="flag" id="flag"><span id="flagt">–</span></div>
+      <div class="clock">
+        <div><small>Écoulé</small><b id="ec">–</b></div>
+        <div><small>Restant</small><b id="re">–</b></div>
+      </div>
+    </div>
+    <div class="prog"><i id="pg"></i></div>
+
+    <main>
+      <div id="err"></div>
+      <div class="wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Pos</th>
+              <th></th>
+              <th>N°</th>
+              <th>Pilote</th>
+              <th>Marque</th>
+              <th class="club">Club</th>
+              <th>Tours</th>
+              <th>Écart 1er</th>
+              <th class="gp">Intervalle</th>
+              <th>Dernier tour</th>
+              <th>Best lap</th>
+              <th class="i1">Inter 1</th>
+              <th class="i2">Inter 2</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tb"></tbody>
+        </table>
+      </div>
+      <div class="foot">
+        <span
+          ><i class="dot" style="background: var(--sb)"></i>Meilleur tour de la
+          course</span
+        >
+        <span
+          ><i class="dot" style="background: var(--pb)"></i>Meilleur temps
+          personnel</span
+        >
+        <span>Dernière mise à jour des données : <b id="maj">–</b></span>
+        <span>Vérification toutes les <b id="pm"></b> s</span>
+        <span>Historique partagé : <b id="fbs">…</b></span>
+      </div>
+    </main>
+
+    <aside class="fiche" id="fi"></aside>
+    <div class="toast" id="ts"></div>
+    <div class="tip" id="tip"></div>
+    <div class="ticker"><div class="trk" id="trk"></div></div>
+
+    <script>
+      // ===== RÉGLAGES =====
+      const PROXY = "https://super-violet-1b94.valvavoun79200.workers.dev";
+      const POLL_MS = 5000; // vérifie le site toutes les 5 s (mets 3000 pour plus rapide)
+      // =====================
+      const $ = (id) => document.getElementById(id);
+      let minL = Infinity,
+        lastE = -1e12;
+      const esc = (s) =>
+        String(s).replace(
+          /[&<>"]/g,
+          (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
+        );
+      const COL = {
+        KTM: "#ff6a00",
+        HONDA: "#dc2626",
+        YAMAHA: "#2563eb",
+        KAWASAKI: "#16a34a",
+        SUZUKI: "#d4a800",
+        GASGAS: "#e11d48",
+        HUSQVARNA: "#1e3a8a",
+        BETA: "#7c3aed",
+      };
+      let D = null,
+        key = "",
+        prev = {},
+        mv = {},
+        flash = {},
+        best = { ms: 1e12, num: "", nom: "" },
+        H = {},
+        BL = {},
+        AH = {},
+        IV = {},
+        BH = {},
+        FIRE = {},
+        AR = {},
+        sel = "",
+        recUntil = 0,
+        cmpN = 5,
+        fbReady = false,
+        histReady = false,
+        initing = false,
+        sent = new Set(),
+        prevMax = 0,
+        prevTitre = null,
+        flushing = false,
+        gapSync = true,
+        refTitre = null,
+        newRace = 0;
+      const rgba = (h, a) =>
+        "rgba(" +
+        [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)).join(",") +
+        "," +
+        a +
+        ")";
+      const PAL = [
+        "#f43f5e",
+        "#f59e0b",
+        "#84cc16",
+        "#10b981",
+        "#06b6d4",
+        "#3b82f6",
+        "#8b5cf6",
+        "#d946ef",
+        "#f97316",
+        "#14b8a6",
+        "#eab308",
+        "#ec4899",
+      ];
+      let fMk = "",
+        fF = "",
+        fS = false,
+        t0 = 0,
+        okAt = 0,
+        favs = {};
+      try {
+        favs = JSON.parse(localStorage.getItem("cfs_favs2") || "{}") || {};
+      } catch (e) {}
+      $("pm").textContent = POLL_MS / 1000;
+
+      const toMs = (t) => {
+        const m = /^(?:(\d+):)?(\d+)\.(\d{3})$/.exec(t);
+        return m ? (+(m[1] || 0) * 60 + +m[2]) * 1000 + +m[3] : null;
+      };
+      const fmt = (ms) => {
+        ms = Math.max(0, ms || 0);
+        const s = Math.floor(ms / 1000),
+          h = Math.floor(s / 3600),
+          m = Math.floor((s % 3600) / 60);
+        return (
+          (h
+            ? h + ":" + String(m).padStart(2, "0")
+            : String(m).padStart(2, "0")) +
+          ":" +
+          String(s % 60).padStart(2, "0")
+        );
+      };
+      const ix = (n) => D.Colonnes.findIndex((c) => c.Nom === n);
+
+      async function poll() {
+        try {
+          const r = await fetch(PROXY + "?t=" + Date.now(), {
+            cache: "no-store",
+          });
+          if (!r.ok) throw new Error("Réponse " + r.status);
+          const j = await r.json();
+          okAt = Date.now();
+          $("err").style.display = "none";
+          apply(j);
+        } catch (e) {
+          $("err").style.display = "block";
+          $("err").textContent =
+            "Lecture impossible : " +
+            e.message +
+            ". Nouvel essai dans quelques secondes…";
+        }
+      }
+
+      function apply(j) {
+        D = j;
+        t0 = Date.now();
+        {
+          const L = Date.now() - Date.parse(j.HeureJourUTC);
+          if (!isNaN(L)) minL = Math.min(minL, L);
+        }
+        $("titre").textContent = j.Titre || "Live Timing";
+        const curMax = Math.max(
+          0,
+          ...j.Donnees.map((l) => +l[ix("NbTour")] || 0),
+        );
+        if (j.Donnees.length) {
+          /* nouvelle course = titre différent de celui de la base, ou classement
+             qui repart à zéro tour. On n'efface qu'après 3 relevés de suite. */
+          const chg =
+            (refTitre !== null && j.Titre !== refTitre) ||
+            (curMax <= 1 && prevMax >= 3);
+          if (chg) {
+            if (++newRace >= 3) {
+              resetRace();
+              refTitre = j.Titre;
+              prevMax = curMax;
+            }
+          } else {
+            newRace = 0;
+            prevMax = curMax;
+          }
+        }
+        const k = JSON.stringify([j.Donnees, j.Messages, j.Drapeau]);
+        if (k === key) {
+          tick();
+          return;
+        } // rien de nouveau
+        const first = key === "";
+        key = k;
+        const iN = ix("Numero"),
+          iT = ix("TpsTour"),
+          iNom = ix("Nom");
+        const now = Date.now(),
+          seen = {};
+        j.Donnees.forEach((l) => {
+          const n = l[iN],
+            pos = +l[0],
+            sig = l.join("|"),
+            o = prev[n];
+          if (!first && o) {
+            if (o.pos !== pos)
+              mv[n] = { d: o.pos - pos, until: now + 25000, tint: now + 12000 };
+          }
+          seen[n] = { pos, sig };
+          const ms0 = toMs(
+              String(l[iT]).replace(/\{meilleur-temps[^}]*\}/g, ""),
+            ),
+            h =
+              H[n] ||
+              (H[n] = { pos: [], laps: [], lapPos: [], gap: [], last: -1 }),
+            nl = +l[ix("NbTour")];
+          if (h.first == null) h.first = nl;
+          /* le 1er temps vu pour un pilote n'est pas fiable : vu au tour 0 on
+             prend à partir du tour 1, vu au tour 1 on prend à partir du tour 2 */
+          const ms = nl > h.first ? ms0 : null;
+          if (ms && ms < best.ms) {
+            if (!first && histReady) {
+              recUntil = now + 120000;
+              toast(
+                "⚡ Nouveau meilleur tour : " +
+                  fmtLap(ms) +
+                  " — #" +
+                  n +
+                  " " +
+                  l[iNom],
+              );
+            }
+            best = { ms, num: n, nom: l[iNom] };
+          }
+          if (ms && (!BL[n] || ms < BL[n])) BL[n] = ms;
+          if (!h.pos.length || h.pos[h.pos.length - 1].p !== pos)
+            h.pos.push({ e: j.TempsEcoule || 0, p: pos });
+          if (nl !== h.last) {
+            if (ms) h.laps.push({ n: nl, ms });
+            h.lapPos.push({ n: nl, p: pos });
+            const gs = String(l[ix("Ecart1er")]).replace(
+                /\{meilleur-temps[^}]*\}/g,
+                "",
+              ),
+              gv = gs === "-" ? 0 : toMs(gs);
+            if (gv != null) (h.gap || (h.gap = [])).push({ n: nl, g: gv });
+            h.last = nl;
+          }
+        });
+        prev = seen;
+        setTimeout(rows, 12200);
+        const dd = j.Donnees,
+          iG = ix("Ecart1er"),
+          gm = dd.map((l) => {
+            const g = String(l[iG]).replace(/\{meilleur-temps[^}]*\}/g, "");
+            return g === "-" ? 0 : toMs(g);
+          });
+        const df = (a, b) =>
+          a != null && b != null && b - a >= 0 ? "+" + fmtGap(b - a) : "";
+        dd.forEach((l, i) => {
+          const n = l[iN],
+            up = i > 0 ? gm[i - 1] : null;
+          AH[n] = i > 0 ? df(up, gm[i]) : "";
+          BH[n] = i < dd.length - 1 ? df(gm[i], gm[i + 1]) : "";
+          const who = i > 0 ? dd[i - 1][iN] : "",
+            g = i > 0 && up != null && gm[i] != null ? gm[i] - up : null,
+            a = AR[n] || (AR[n] = { who: "", v: [] });
+          const iv = IV[n] || (IV[n] = { who: "", v: null, dn: false });
+          if (iv.who !== who || g == null) {
+            iv.who = who;
+            iv.v = g;
+            iv.dn = false;
+          } else if (g !== iv.v) {
+            iv.dn = iv.v != null && g < iv.v;
+            iv.v = g;
+          }
+          if (a.who !== who || g == null) {
+            a.who = who;
+            a.v = [];
+          }
+          if (g != null && (!a.v.length || a.v[a.v.length - 1] !== g))
+            a.v.push(g);
+          if (a.v.length > 4) a.v.shift();
+          const v = a.v,
+            k = v.length;
+          FIRE[n] =
+            k >= 3 && v[k - 1] < v[k - 2] && v[k - 2] < v[k - 3]
+              ? "Revient sur #" +
+                who +
+                " : " +
+                fmtGap(v[k - 3] - v[k - 1]) +
+                " repris en 2 mises à jour"
+              : "";
+        });
+        const m = j.Messages || [],
+          last = m[m.length - 1] || "";
+        const txt = last.includes(">")
+            ? last.split(">").slice(1).join(">").trim()
+            : "En course",
+          lc = txt.toLowerCase();
+        const f = $("flag"),
+          FL = {
+            0: ["Drapeau vert", ""],
+            3: ["", " chk"],
+            6: ["Stop", " red"],
+          },
+          fl = FL[j.Drapeau];
+        $("flagt").textContent = fl ? fl[0] : txt || "En course";
+        f.className =
+          "flag" +
+          (fl
+            ? fl[1]
+            : lc.includes("rouge")
+              ? " red"
+              : lc.includes("jaune")
+                ? " yel"
+                : lc.includes("damier") || lc.includes("arriv")
+                  ? " chk"
+                  : "");
+        $("maj").textContent = new Date().toLocaleTimeString("fr-FR");
+        chips();
+        cards();
+        rows();
+        fiche();
+        tick();
+        if (fbReady) flush();
+        else if (!initing) fbInit();
+      }
+
+      function chips() {
+        const iM = ix("Vehicule"),
+          c = {};
+        D.Donnees.forEach((l) => {
+          if (l[iM]) c[l[iM]] = (c[l[iM]] || 0) + 1;
+        });
+        $("chips").innerHTML =
+          '<div class="opt' +
+          (fMk ? "" : " on") +
+          '" data-m="">Toutes</div>' +
+          Object.keys(c)
+            .sort()
+            .map(
+              (m) =>
+                '<div class="opt' +
+                (fMk === m ? " on" : "") +
+                '" data-m="' +
+                esc(m) +
+                '"><span class="dt" style="background:' +
+                (COL[m] || "#475569") +
+                '"></span>' +
+                esc(m) +
+                "<em>" +
+                c[m] +
+                "</em></div>",
+            )
+            .join("");
+      }
+
+      let tkHtml = "";
+      function cards() {
+        const iN = ix("Numero"),
+          iNom = ix("Nom"),
+          iM = ix("Vehicule"),
+          iT = ix("NbTour"),
+          iE = ix("Ecart1er"),
+          d = D.Donnees;
+        const it = (cl, k, t) =>
+          '<div class="ti ' +
+          cl +
+          '"><span class="k">' +
+          k +
+          "</span>" +
+          t +
+          "</div>";
+        const w = (l, cl, k) =>
+          l
+            ? it(
+                cl,
+                k,
+                '<span class="num">' +
+                  esc(l[iN]) +
+                  "</span><b>" +
+                  esc(l[iNom]) +
+                  "</b><span>" +
+                  esc(l[iM]) +
+                  " · " +
+                  esc(l[iT]) +
+                  " tr" +
+                  (cl === "g1" ? "" : " · " + esc(l[iE])) +
+                  "</span>",
+              )
+            : "";
+        let c =
+          w(d[0], "g1", "1er") + w(d[1], "g2", "2e") + w(d[2], "g3", "3e");
+        if (recUntil > Date.now() && best.num)
+          c =
+            it(
+              "bl",
+              "⚡ Nouveau record",
+              "<b>" +
+                fmtLap(best.ms) +
+                "</b><b>#" +
+                esc(best.num) +
+                " " +
+                esc(best.nom) +
+                "</b>",
+            ) + c;
+        if (best.num)
+          c += it(
+            "bl",
+            "Meilleur tour",
+            "<b>" +
+              fmtLap(best.ms) +
+              '</b><span class="num">' +
+              esc(best.num) +
+              "</span><b>" +
+              esc(best.nom) +
+              "</b>",
+          );
+        (D.Messages || [])
+          .slice(-3)
+          .reverse()
+          .forEach((m) => (c += it("ms", "Info", esc(m))));
+        c += it("", "Classés", "<b>" + d.length + "</b> pilotes");
+        const h = '<div class="set">' + c + "</div>";
+        if (h !== tkHtml) {
+          tkHtml = h;
+          $("trk").innerHTML = h + h;
+          $("trk").style.animationDuration =
+            Math.max(30, c.replace(/<[^>]+>/g, "").length * 0.22) + "s";
+        }
+      }
+      const fmtLap = (ms) =>
+        Math.floor(ms / 60000) +
+        ":" +
+        String(Math.floor((ms % 60000) / 1000)).padStart(2, "0") +
+        "." +
+        String(ms % 1000).padStart(3, "0");
+
+      function rows() {
+        if (!D) return;
+        const q = $("q").value.trim().toLowerCase(),
+          now = Date.now();
+        const iN = ix("Numero"),
+          iNom = ix("Nom"),
+          iS = ix("Perso6"),
+          iM = ix("Vehicule"),
+          iC = ix("Club"),
+          iT = ix("NbTour"),
+          iE = ix("Ecart1er"),
+          iL = ix("TpsTour"),
+          i1 = ix("Inter1"),
+          i2 = ix("Inter2");
+        const rs = D.Donnees.filter(
+          (l) =>
+            (!fMk || l[iM] === fMk) &&
+            (!fF || l[iS] === fF) &&
+            (!fS || favs[l[iN]]) &&
+            (!q || l.join(" ").toLowerCase().includes(q)),
+        );
+        const cell = (v, extra, isLap) => {
+          let t = String(v),
+            pb = t.includes("{meilleur-temps}"),
+            cr = t.includes("{meilleur-temps-course}");
+          t = t.replace(/\{meilleur-temps[^}]*\}/g, "");
+          let c = (extra || "") + (pb ? " pb" : "") + (cr ? " sb" : "");
+          if (isLap && best.num && toMs(t) === best.ms) c += " sb";
+          return '<td class="' + c + '">' + esc(t) + "</td>";
+        };
+        $("tb").innerHTML = rs
+          .map((l) => {
+            const n = l[iN],
+              p = +l[0],
+              m = mv[n],
+              up = m && m.until > now && m.d;
+            const cls =
+              (p <= 3 ? "r" + p : "") +
+              (favs[n] ? " fav" : "") +
+              (m && m.tint > now ? (m.d > 0 ? " gain" : " loss") : "");
+            return (
+              '<tr class="' +
+              cls +
+              '" data-n="' +
+              esc(n) +
+              '"' +
+              (favs[n] ? ' style="--fb:' + rgba(favs[n], 0.16) + '"' : "") +
+              '><td class="pos">' +
+              esc(l[0]) +
+              '</td><td class="mv ' +
+              (up > 0 ? "u" : "d") +
+              '">' +
+              (up ? (up > 0 ? "▲" : "▼") + Math.abs(up) : "") +
+              '</td><td><span class="num"' +
+              (favs[n]
+                ? ' style="background:' + favs[n] + ';color:#fff"'
+                : "") +
+              ">" +
+              esc(n) +
+              '</span></td><td class="nom' +
+              (l[iS] === "Femme" ? " fem" : "") +
+              '"' +
+              (favs[n] && l[iS] !== "Femme"
+                ? ' style="color:' + favs[n] + '"'
+                : "") +
+              ">" +
+              esc(l[iNom]) +
+              (FIRE[n]
+                ? '<span class="fire" title="' + esc(FIRE[n]) + '">🔥</span>'
+                : "") +
+              '</td><td><span class="mk" style="--c:' +
+              (COL[l[iM]] || "#475569") +
+              '">' +
+              esc(l[iM]) +
+              '</span></td><td class="club">' +
+              esc(l[iC]) +
+              "</td><td>" +
+              esc(l[iT]) +
+              '</td><td class="gap">' +
+              esc(l[iE]) +
+              '</td><td class="gp' +
+              (IV[n] && IV[n].dn ? " pb" : "") +
+              '">' +
+              (AH[n] || "—") +
+              "</td>" +
+              cell(l[iL], "", true) +
+              '<td class="' +
+              (BL[n] && BL[n] === best.ms ? "sb" : "") +
+              '">' +
+              (BL[n] ? fmtLap(BL[n]) : "—") +
+              "</td>" +
+              cell(l[i1], "i1") +
+              cell(l[i2], "i2") +
+              '<td class="st" data-n="' +
+              esc(n) +
+              '"' +
+              (favs[n] ? ' style="color:' + favs[n] + '"' : "") +
+              ">" +
+              (favs[n] ? "★" : "☆") +
+              "</td></tr>"
+            );
+          })
+          .join("");
+      }
+
+      function tick() {
+        const on = Date.now() - okAt < POLL_MS * 4 + 3000;
+        $("live").className = "live" + (on ? "" : " off");
+        $("livet").textContent = on ? "LIVE" : "HORS LIGNE";
+        if (!D) return;
+        const T0 = D.TempsEcoule || 0,
+          tot = T0 + (D.TempsRestant || 0),
+          hu = Date.parse(D.HeureJourUTC);
+        let age = D.FigerTemps
+          ? 0
+          : isFinite(hu) && isFinite(minL)
+            ? Date.now() - hu - minL
+            : Date.now() - t0;
+        if (age < 0) age = 0;
+        let e = T0 + age;
+        if (!D.FigerTemps && e < lastE && lastE - e < 5000) e = lastE;
+        lastE = e;
+        const r = tot - e;
+        $("ec").textContent = fmt(e);
+        $("re").textContent = fmt(r);
+        $("pg").style.width =
+          Math.min(100, Math.max(0, (e / (tot || 1)) * 100)) + "%";
+      }
+
+      const fmtGap = (ms) => (ms < 60000 ? (ms / 1000).toFixed(3) : fmtLap(ms));
+      function toast(t) {
+        const o = $("ts");
+        o.textContent = t;
+        o.classList.add("on");
+        clearTimeout(toast.t);
+        toast.t = setTimeout(() => o.classList.remove("on"), 8000);
+      }
+      /* Courbe "monotone" identique à Recharts / d3 (monotoneX) */
+      function smooth(P) {
+        const n = P.length;
+        if (n < 2) return "";
+        const sg = (v) => (v < 0 ? -1 : 1),
+          f = (v) => +v.toFixed(3),
+          h = [],
+          s = [],
+          t = new Array(n);
+        for (let i = 0; i < n - 1; i++) {
+          h[i] = P[i + 1][0] - P[i][0] || 1e-6;
+          s[i] = (P[i + 1][1] - P[i][1]) / h[i];
+        }
+        for (let i = 1; i < n - 1; i++) {
+          const p = (s[i - 1] * h[i] + s[i] * h[i - 1]) / (h[i - 1] + h[i]);
+          t[i] =
+            (sg(s[i - 1]) + sg(s[i])) *
+              Math.min(Math.abs(s[i - 1]), Math.abs(s[i]), 0.5 * Math.abs(p)) ||
+            0;
+        }
+        if (n === 2) t[0] = t[1] = s[0];
+        else {
+          t[0] = (3 * s[0] - t[1]) / 2;
+          t[n - 1] = (3 * s[n - 2] - t[n - 2]) / 2;
+        }
+        let d = "M" + f(P[0][0]) + "," + f(P[0][1]);
+        for (let i = 0; i < n - 1; i++) {
+          const dx = h[i] / 3;
+          d +=
+            "C" + f(P[i][0] + dx) + "," + f(P[i][1] + dx * t[i]) +
+            "," + f(P[i + 1][0] - dx) + "," + f(P[i + 1][1] - dx * t[i + 1]) +
+            "," + f(P[i + 1][0]) + "," + f(P[i + 1][1]);
+        }
+        return d;
+      }
+      /* Couleur du texte lisible sur la couleur du rond (meilleur contraste WCAG) */
+      const tc = (c) => {
+        const v = parseInt(c.slice(1), 16),
+          q = [v >> 16, (v >> 8) & 255, v & 255].map((x) => {
+            x /= 255;
+            return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+          }),
+          L = 0.2126 * q[0] + 0.7152 * q[1] + 0.0722 * q[2];
+        return 1.05 / (L + 0.05) >= (L + 0.05) / 0.059 ? "#fff" : "#111827";
+      };
+      const ini = (nom) => {
+        const t = String(nom).split(/\s+/).filter(Boolean),
+          up = (w) => w === w.toUpperCase() && /[A-ZÀ-Ý]/.test(w),
+          sur = t.find(up),
+          fn = t.find((w) => !up(w));
+        return (
+          (fn ? fn[0] : "") + (sur ? sur[0] : (t[0] || "")[0] || "")
+        ).toUpperCase();
+      };
+      function sers() {
+        const iN = ix("Numero"),
+          iNom = ix("Nom"),
+          iM = ix("Vehicule"),
+          top = D.Donnees.slice(0, cmpN === 1 ? 0 : cmpN).map((r) => r[iN]);
+        if (!top.includes(sel)) top.push(sel);
+        return top.map((n) => {
+          const r = D.Donnees.find((x) => x[iN] === n),
+            mk = r ? r[iM] : "";
+          return {
+            n,
+            nom: r ? r[iNom] : "",
+            c: COL[mk] || "#475569",
+            h: H[n] || { pos: [], laps: [], lapPos: [], gap: [] },
+          };
+        });
+      }
+      /* Écart au leader quand il n'a pas été relevé : temps cumulés comparés au
+         leader officiel du tour (le pilote classé P1 en terminant ce tour). */
+      function gapDerived() {
+        const cum = {},
+          lead = {};
+        Object.keys(H).forEach((n) => {
+          const m = new Map((H[n].laps || []).map((p) => [p.n, p.ms])),
+            c = {};
+          let t = 0;
+          for (let k = 1; m.has(k); k++) {
+            t += m.get(k);
+            c[k] = t;
+          }
+          cum[n] = c;
+          (H[n].lapPos || []).forEach((p) => {
+            if (p.p === 1 && c[p.n] != null)
+              if (lead[p.n] == null || c[p.n] < cum[lead[p.n]][p.n])
+                lead[p.n] = n;
+          });
+        });
+        const out = {};
+        Object.keys(cum).forEach((n) => {
+          out[n] = {};
+          Object.keys(cum[n]).forEach((k) => {
+            const L = lead[k];
+            if (L == null) return;
+            const g = cum[n][k] - cum[L][k];
+            if (g >= 0) out[n][k] = g;
+          });
+        });
+        return out;
+      }
+      function cmp(kind) {
+        const S = sers(),
+          pos = kind === "pos",
+          gap = kind === "gap",
+          iN = ix("Numero"),
+          GD = gap ? gapDerived() : null;
+        S.forEach((s) => {
+          if (pos) {
+            const b = (s.h.lapPos || []).map((p) => ({ x: p.n, y: p.p })),
+              r = D.Donnees.find((q) => q[iN] === s.n),
+              cur = r ? +r[0] : NaN,
+              nlc = r ? +r[ix("NbTour")] : NaN;
+            if (isFinite(cur) && isFinite(nlc)) {
+              if (b.length && b[b.length - 1].x === nlc)
+                b[b.length - 1].y = cur;
+              else if (!b.length || nlc > b[b.length - 1].x)
+                b.push({ x: nlc, y: cur });
+            }
+            s.p = b;
+          } else if (gap) {
+            const m = new Map(),
+              d = GD[s.n] || {};
+            Object.keys(d).forEach((k) => m.set(+k, d[k]));
+            (s.h.gap || []).forEach((p) => m.set(p.n, p.g));
+            s.p = [...m].map(([x, y]) => ({ x, y }));
+          }
+          else s.p = s.h.laps.map((p) => ({ x: p.n, y: p.ms }));
+          const mp = new Map();
+          s.p
+            .filter((p) => isFinite(p.x) && isFinite(p.y) && p.x >= 1)
+            .forEach((p) => mp.set(p.x, p));
+          s.p = [...mp.values()].sort((a, b) => a.x - b.x);
+        });
+        /* Temps de tour : le tour 1 est un tour de départ partiel (ligne de départ
+           -> 1er passage). S'il est très différent des autres tours, on ne le trace
+           pas, sinon il écrase tout l'axe. */
+        const exl = new Set();
+        if (kind === "lap") {
+          const med = (a) => {
+              const v = [...a].sort((x, y) => x - y);
+              return v[Math.floor(v.length / 2)];
+            },
+            l1 = [].concat(...S.map((q) => q.p.filter((p) => p.x === 1))),
+            lr = [].concat(...S.map((q) => q.p.filter((p) => p.x > 1)));
+          if (l1.length && lr.length) {
+            const m1 = med(l1.map((p) => p.y)),
+              mr = med(lr.map((p) => p.y));
+            if (m1 < mr * 0.5 || m1 > mr * 2) {
+              exl.add(1);
+              S.forEach((q) => (q.p = q.p.filter((p) => p.x !== 1)));
+            }
+          }
+        }
+        /* Mode Top N : on classe les pilotes AFFICHÉS entre eux à chaque tour
+           (1 = meilleur des pilotes affichés). Si un pilote n'a pas de point à un
+           tour, sa position est estimée entre ses tours voisins pour ne pas
+           fausser le classement des autres (aucun faux point n'est dessiné). */
+        const rel = pos && S.length > 1;
+        if (rel) {
+          const laps = [
+            ...new Set([].concat(...S.map((q) => q.p.map((p) => p.x)))),
+          ].sort((a, b) => a - b);
+          laps.forEach((n) => {
+            const row = [];
+            S.forEach((q) => {
+              const own = q.p.find((p) => p.x === n);
+              if (own) return row.push({ p: own, v: own.y });
+              let a = null,
+                b = null;
+              q.p.forEach((p) => {
+                if (p.x < n) a = p;
+                else if (p.x > n && !b) b = p;
+              });
+              if (a && b)
+                row.push({
+                  p: null,
+                  v: a.y + ((b.y - a.y) * (n - a.x)) / (b.x - a.x),
+                });
+            });
+            row.sort((u, w) => u.v - w.v);
+            row.forEach((r, i) => {
+              if (r.p) {
+                r.p.real = r.p.y;
+                r.p.y = i + 1;
+              }
+            });
+          });
+        }
+        const all = [].concat(...S.map((s) => s.p));
+        if (all.length < 2 || all.every((p) => p.x === all[0].x))
+          return '<div class="nd">Pas encore assez de données : les courbes se remplissent tour après tour (seulement ce que la page a vu).</div>';
+        const ys0 = all.map((p) => p.y).sort((a, b) => a - b),
+          md = ys0[Math.floor(ys0.length / 2)];
+        const lo = ys0[0],
+          hi = ys0[ys0.length - 1],
+          pd = hi - lo ? 0 : md * 0.02,
+          dlo = lo - pd,
+          dhi = hi + pd;
+        const cl = (y) => y; /* valeurs réelles, aucune n'est ramenée au bord */
+        const xs = all.map((p) => p.x),
+          ysc = all.map((p) => cl(p.y));
+        const x0 = Math.min(...xs),
+          x1 = Math.max(...xs),
+          y0 = gap ? Math.min(...ysc) : rel ? 1 : pos ? Math.min(...ysc) : dlo,
+          y1 = gap
+            ? Math.max(...ysc) > Math.min(...ysc)
+              ? Math.max(...ysc)
+              : Math.min(...ysc) + 1000
+            : rel
+              ? Math.max(S.length, 2)
+              : pos
+                ? Math.max(...ysc)
+                : dhi;
+        const fg = (ms) =>
+          ms < 1
+            ? "0"
+            : ms < 60000
+              ? "+" + Math.round(ms / 1000) + "s"
+              : "+" +
+                Math.floor(ms / 60000) +
+                ":" +
+                String(Math.round((ms % 60000) / 1000)).padStart(2, "0");
+        const W = 900,
+          Hh = 400,
+          L = 80,
+          R = 26,
+          T = 24,
+          B = 42;
+        const X = (x) => L + ((x - x0) / (x1 - x0 || 1)) * (W - L - R),
+          Y = (y) => {
+            const t = (cl(y) - y0) / (y1 - y0 || 1);
+            return T + t * (Hh - T - B);
+          };
+        let g = "";
+        const ticks = rel
+          ? Array.from(
+              { length: Math.ceil(S.length / Math.max(1, Math.ceil(S.length / 12))) },
+              (_, i) => i * Math.max(1, Math.ceil(S.length / 12)) + 1,
+            )
+          : pos
+          ? [
+              ...new Set(
+                [0, 1, 2, 3, 4].map((i) =>
+                  Math.round(y0 + ((y1 - y0) * i) / 4),
+                ),
+              ),
+            ]
+          : [0, 1, 2, 3, 4].map((i) => y0 + ((y1 - y0) * i) / 4);
+        ticks.forEach((v) => {
+          const yy = Y(v);
+          g +=
+            '<line class="gl" x1="' +
+            L +
+            '" y1="' +
+            yy.toFixed(1) +
+            '" x2="' +
+            (W - R) +
+            '" y2="' +
+            yy.toFixed(1) +
+            '"/><text class="ax" x="' +
+            (L - 20) +
+            '" y="' +
+            (yy + 3.5).toFixed(1) +
+            '" text-anchor="end">' +
+            (rel ? v : pos ? "P" + v : gap ? (v < 1 ? "0" : "+" + fmtGap(Math.round(v))) : fmtLap(Math.round(v))) +
+            "</text>";
+        });
+        const step = Math.max(1, Math.ceil((x1 - x0) / 14));
+        for (let x = x0; x <= x1; x += step)
+          g +=
+            '<line class="gl v" x1="' +
+            X(x).toFixed(1) +
+            '" y1="' +
+            T +
+            '" x2="' +
+            X(x).toFixed(1) +
+            '" y2="' +
+            (Hh - B) +
+            '"/><text class="ax" x="' +
+            X(x).toFixed(1) +
+            '" y="' +
+            (Hh - 22) +
+            '" text-anchor="middle">' +
+            x +
+            "</text>";
+        g +=
+          '<text class="ax" x="' +
+          W / 2 +
+          '" y="' +
+          (Hh - 6) +
+          '" text-anchor="middle">Tour</text>';
+        const dense = S.length > 15; /* beaucoup de pilotes : ronds sans initiales */
+        const ord = S.filter((s) => s.n !== sel).concat(
+          S.filter((s) => s.n === sel),
+        );
+        const PT = ord.map((s) => ({
+          s,
+          P: s.p.map((p) => ({
+            x: +X(p.x).toFixed(1),
+            y: +Y(p.y).toFixed(1),
+            v: p,
+          })),
+        }));
+        PT.forEach(({ s, P }) => {
+          if (P.length < 2) return;
+          const d = smooth(P.map((p) => [p.x, p.y]));
+          g +=
+            '<path class="hit" data-n="' +
+            esc(s.n) +
+            '" d="' +
+            d +
+            '"/><path class="crv' +
+            (s.n === sel ? " me" : "") +
+            '" data-n="' +
+            esc(s.n) +
+            '" style="stroke:' +
+            s.c +
+            '" d="' +
+            d +
+            '"/>';
+        });
+        PT.forEach(({ s, P }) => {
+          const me = s.n === sel,
+            i2 = esc(ini(s.nom));
+          P.forEach((p) => {
+            const tt =
+              "tour " + p.v.x + " · " + (pos
+                ? "P" + (p.v.real ?? p.v.y)
+                : gap
+                  ? p.v.y
+                    ? "+" + fmtGap(p.v.y)
+                    : "Leader"
+                  : fmtLap(p.v.y));
+            g +=
+              '<g class="pg" data-n="' +
+              esc(s.n) +
+              '"><circle class="pt' +
+              (me ? " me" : "") +
+              '" data-n="' +
+              esc(s.n) +
+              '" data-t="' +
+              tt +
+              '" cx="' +
+              p.x +
+              '" cy="' +
+              p.y +
+              '" r="' +
+              (dense ? 4 : 7) +
+              '" style="fill:' +
+              s.c +
+              '"/>' +
+              (dense
+                ? ""
+                : '<text class="ini" data-n="' +
+              esc(s.n) +
+              '" x="' +
+              p.x +
+              '" y="' +
+              p.y +
+              '" style="fill:' +
+              tc(s.c) +
+              '">' +
+              i2 +
+              "</text>") +
+              "</g>";
+          });
+        });
+        return (
+          '<div class="cvw"><svg viewBox="0 0 ' +
+          W +
+          " " +
+          Hh +
+          '">' +
+          g +
+          "</svg></div>" +
+          (exl.size
+            ? '<div class="nd">Tour ' +
+              [...exl].join(", ") +
+              " non affiché : tour de départ partiel, temps incomparable avec les autres tours.</div>"
+            : "")
+        );
+      }
+      const ctl = () =>
+        '<div class="seg">' +
+        [
+          [1, "Seul"],
+          [3, "Top 3"],
+          [5, "Top 5"],
+          [10, "Top 10"],
+          [999, "Tous"],
+        ]
+          .map(
+            ([v, t]) =>
+              '<button data-c="' +
+              v +
+              '" class="' +
+              (cmpN === v ? "on" : "") +
+              '">' +
+              t +
+              "</button>",
+          )
+          .join("") +
+        "</div>";
+      const legend = () =>
+        sers().length > 15
+          ? '<div class="nd">Beaucoup de pilotes : passe la souris sur une courbe pour voir qui c\'est.</div>'
+          : '<div class="lgw cvw">' +
+        sers()
+          .map(
+            (s) =>
+              '<span class="lg' +
+              (s.n === sel ? " me" : "") +
+              '" data-n="' +
+              esc(s.n) +
+              '"><i style="background:' +
+              s.c +
+              ";color:" +
+              tc(s.c) +
+              '">' +
+              esc(ini(s.nom)) +
+              "</i>#" +
+              esc(s.n) +
+              " " +
+              esc(s.nom) +
+              "</span>",
+          )
+          .join("") +
+        "</div>";
+      function hl(n, tt) {
+        document
+          .querySelectorAll("#fi .crv")
+          .forEach((p) => p.classList.toggle("on", !!n && p.dataset.n === n));
+        document
+          .querySelectorAll("#fi .crv, #fi svg .pg, #fi .lg")
+          .forEach((p) => p.classList.toggle("dim", !!n && p.dataset.n !== n));
+        const tp = $("tip");
+        if (n) {
+          const l = D.Donnees.find((r) => r[ix("Numero")] === n);
+          tp.textContent =
+            "#" +
+            n +
+            " " +
+            (l ? l[ix("Nom")] : "") +
+            " · " +
+            (tt || (l ? "P" + l[0] : ""));
+          tp.classList.add("on");
+        } else tp.classList.remove("on");
+      }
+      function fiche() {
+        const fi = $("fi"),
+          l = D && sel ? D.Donnees.find((r) => r[ix("Numero")] === sel) : null;
+        if (!l) {
+          fi.classList.remove("open");
+          return;
+        }
+        const g = (n) =>
+            String(l[ix(n)]).replace(/\{meilleur-temps[^}]*\}/g, ""),
+          h = H[sel] || { pos: [], laps: [] },
+          bl = h.laps.length ? Math.min(...h.laps.map((x) => x.ms)) : 0;
+        const kv = (k, v) =>
+          "<div><small>" + k + "</small><b>" + esc(v || "—") + "</b></div>";
+        fi.innerHTML =
+          '<button class="x" id="fx">✕</button><div class="fh"><span class="num">' +
+          esc(sel) +
+          '</span><div><div class="fn' +
+          (g("Perso6") === "Femme" ? " fem" : "") +
+          '">' +
+          esc(g("Nom")) +
+          (FIRE[sel] ? " 🔥" : "") +
+          '</div><div class="fs">' +
+          esc(g("Vehicule")) +
+          " · " +
+          esc(g("Club")) +
+          "</div></div></div>" +
+          (FIRE[sel]
+            ? '<div class="nd" style="color:#fb923c">🔥 ' +
+              esc(FIRE[sel]) +
+              "</div>"
+            : "") +
+          '<div class="kv">' +
+          kv("Position", g("Position")) +
+          kv("Tours", g("NbTour")) +
+          kv("Écart 1er", g("Ecart1er")) +
+          kv("Intervalle", AH[sel]) +
+          kv("Dernier tour", g("TpsTour")) +
+          kv("Meilleur tour vu", bl ? fmtLap(bl) : "") +
+          "</div>" +
+          "<h3>Position au fil de la course</h3>" +
+          cmp("pos") +
+          ctl() +
+          "<h3>Écart au leader par tour</h3>" +
+          cmp("gap") +
+          ctl() +
+          "<h3>Temps de chaque tour</h3>" +
+          cmp("lap") +
+          ctl() +
+          legend();
+        fi.classList.add("open");
+      }
+      $("fi").addEventListener("click", (e) => {
+        if (e.target.id === "fx") {
+          sel = "";
+          fiche();
+          return;
+        }
+        const b = e.target.closest("[data-c]");
+        if (b) {
+          cmpN = +b.dataset.c;
+          fiche();
+        }
+      });
+      $("fi").addEventListener("mouseover", (e) => {
+        const t = e.target.closest("[data-n]");
+        if (t && t.closest(".cvw")) hl(t.dataset.n, t.dataset.t);
+      });
+      $("fi").addEventListener("mouseout", (e) => {
+        const t =
+          e.relatedTarget && e.relatedTarget.closest
+            ? e.relatedTarget.closest("[data-n]")
+            : null;
+        if (!t) hl(null);
+      });
+      $("fi").addEventListener("mousemove", (e) => {
+        const tp = $("tip");
+        tp.style.left = Math.min(e.clientX + 14, innerWidth - 190) + "px";
+        tp.style.top = e.clientY + 16 + "px";
+      });
+      $("tb").addEventListener("click", (e) => {
+        const s = e.target.closest(".st");
+        if (!s) {
+          const r = e.target.closest("tr");
+          if (r && r.dataset.n) {
+            sel = r.dataset.n;
+            fiche();
+          }
+          return;
+        }
+        const n = s.dataset.n;
+        if (favs[n]) delete favs[n];
+        else {
+          const used = Object.values(favs);
+          favs[n] =
+            PAL.find((c) => !used.includes(c)) ||
+            PAL[Object.keys(favs).length % PAL.length];
+        }
+        try {
+          localStorage.setItem("cfs_favs2", JSON.stringify(favs));
+        } catch (x) {}
+        rows();
+      });
+
+      const closeDd = () =>
+        document
+          .querySelectorAll(".dd.open")
+          .forEach((x) => x.classList.remove("open"));
+      const dd = (id, fn) => {
+        const el = $(id);
+        el.addEventListener("click", (e) => {
+          if (e.target.closest(".ddb")) {
+            const o = el.classList.contains("open");
+            closeDd();
+            if (!o) el.classList.add("open");
+            return;
+          }
+          const c = e.target.closest(".opt");
+          if (!c) return;
+          const val = fn(c),
+            b = el.querySelector(".ddb");
+          b.querySelector("b").textContent = val.label;
+          b.classList.toggle("act", !!val.on);
+          el.querySelectorAll(".opt").forEach((x) =>
+            x.classList.toggle("on", x === c),
+          );
+          closeDd();
+          rows();
+        });
+      };
+      dd("ddm", (c) => {
+        fMk = c.dataset.m;
+        return { label: fMk || "Toutes", on: fMk };
+      });
+      dd("gs", (c) => {
+        fF = c.dataset.s;
+        return { label: c.textContent, on: fF };
+      });
+      dd("gf", (c) => {
+        fS = c.dataset.f === "1";
+        return { label: c.textContent, on: fS };
+      });
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest(".dd")) closeDd();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeDd();
+      });
+      $("q").addEventListener("input", rows);
+
+      // ===== HISTORIQUE PARTAGÉ (Firebase) : seulement la course en cours =====
+      const FB =
+        "https://livetimingcfs-default-rtdb.europe-west1.firebasedatabase.app/course";
+      const fbStatus = (ok) => {
+        const e = $("fbs");
+        if (e)
+          e.textContent = ok
+            ? "synchronisé " + new Date().toLocaleTimeString("fr-FR")
+            : "indisponible";
+      };
+      const fbGet = async () => {
+        const r = await fetch(FB + ".json", { cache: "no-store" });
+        if (!r.ok) throw new Error("Firebase " + r.status);
+        return r.json();
+      };
+      function merge(db) {
+        let add = 0;
+        const go = (src, field, key, valKey) => {
+          Object.keys(src || {}).forEach((n) => {
+            if (!src[n]) return;
+            const h =
+                H[n] || (H[n] = { pos: [], laps: [], lapPos: [], gap: [], last: -1 }),
+              m = new Map((h[field] || []).map((p) => [p.n, p[valKey]]));
+            Object.keys(src[n]).forEach((lap) => {
+              const v = src[n][lap];
+              if (v == null) return;
+              if (!m.has(+lap)) add++;
+              m.set(+lap, v);
+              sent.add(key + ":" + n + ":" + lap);
+            });
+            h[field] = [...m]
+              .map(([k, v]) => ({ n: k, [valKey]: v }))
+              .sort((a, b) => a.n - b.n);
+            if (field === "laps") {
+              const mn = Math.min(...h.laps.map((p) => p.ms));
+              if (isFinite(mn) && (!BL[n] || mn < BL[n])) BL[n] = mn;
+            }
+          });
+        };
+        if (db) {
+          go(db.laps, "laps", "l", "ms");
+          go(db.lapPos, "lapPos", "p", "p");
+          go(db.gap, "gap", "g", "g");
+        }
+        return add;
+      }
+      function recomputeBest() {
+        let b = null;
+        Object.keys(BL).forEach((n) => {
+          if (!b || BL[n] < b.ms) b = { ms: BL[n], num: n };
+        });
+        if (b && b.ms < best.ms) {
+          const r = D && D.Donnees.find((x) => x[ix("Numero")] === b.num);
+          best = { ms: b.ms, num: b.num, nom: r ? r[ix("Nom")] : "" };
+        }
+      }
+      async function flush() {
+        if (!fbReady || flushing || !D) return;
+        const out = {},
+          keys = [];
+        Object.keys(H).forEach((n) => {
+          H[n].laps.forEach((p) => {
+            const k = "l:" + n + ":" + p.n;
+            if (p.n >= 1 && p.ms > 0 && p.ms < 3600000 && !sent.has(k)) {
+              out["laps/" + n + "/" + p.n] = p.ms;
+              keys.push(k);
+            }
+          });
+          H[n].lapPos.forEach((p) => {
+            const k = "p:" + n + ":" + p.n;
+            if (p.n >= 1 && p.p >= 1 && p.p <= 1000 && !sent.has(k)) {
+              out["lapPos/" + n + "/" + p.n] = p.p;
+              keys.push(k);
+            }
+          });
+          (gapSync ? H[n].gap || [] : []).forEach((p) => {
+            const k = "g:" + n + ":" + p.n;
+            if (p.n >= 1 && p.g >= 0 && p.g < 3600000 && !sent.has(k)) {
+              out["gap/" + n + "/" + p.n] = p.g;
+              keys.push(k);
+            }
+          });
+        });
+        if (!keys.length) return;
+        out["meta/titre"] = String(D.Titre || "").slice(0, 100);
+        out["meta/lastE"] = D.TempsEcoule || 0;
+        flushing = true;
+        try {
+          const r = await fetch(FB + ".json", {
+            method: "PATCH",
+            body: JSON.stringify(out),
+          });
+          if (!r.ok) throw new Error("Firebase " + r.status);
+          keys.forEach((k) => sent.add(k));
+          if (refTitre === null) refTitre = D.Titre;
+          fbStatus(true);
+        } catch (e) {
+          if (gapSync && /^Firebase 4/.test(e.message) && keys.some((k) => k[0] === "g")) {
+            gapSync = false;
+            flushing = false;
+            return flush();
+          }
+          fbStatus(false);
+        }
+        flushing = false;
+      }
+      async function fbInit() {
+        initing = true;
+        try {
+          const db = await fbGet();
+          if (db) {
+            const mx = (o) => {
+              let m = 0;
+              Object.keys(o || {}).forEach((n) =>
+                Object.keys(o[n] || {}).forEach((k) => {
+                  if (o[n][k] != null) m = Math.max(m, +k);
+                }),
+              );
+              return m;
+            };
+            merge(db); /* la base est gardée ; si c'est une autre course, elle sera
+                          effacée après 3 relevés de suite, jamais tout de suite */
+            refTitre = db.meta && db.meta.titre ? db.meta.titre : null;
+            prevMax = Math.max(prevMax, mx(db.lapPos), mx(db.laps));
+          } else refTitre = D.Titre;
+          fbReady = true;
+          recomputeBest();
+          fbStatus(true);
+        } catch (e) {
+          fbStatus(false);
+          setTimeout(() => {
+            if (!fbReady) fbInit();
+          }, 30000);
+        }
+        initing = false;
+        histReady = true;
+        if (D) {
+          cards();
+          rows();
+          if (sel) fiche();
+        }
+        if (fbReady) flush();
+      }
+      function resetRace() {
+        H = {};
+        BL = {};
+        AR = {};
+        IV = {};
+        mv = {};
+        prev = {};
+        key = "";
+        best = { ms: 1e12, num: "", nom: "" };
+        sent.clear();
+        refTitre = D ? D.Titre : null;
+        prevMax = 0;
+        newRace = 0;
+        fbReady = false;
+        initing = true;
+        fetch(FB + ".json", { method: "DELETE" })
+          .catch(() => {})
+          .finally(() => {
+            initing = false;
+            fbReady = true;
+            flush();
+          });
+      }
+      setInterval(() => {
+        if (!fbReady || !D) return;
+        fbGet()
+          .then((db) => {
+            if (merge(db)) {
+              recomputeBest();
+              cards();
+              rows();
+              if (sel) fiche();
+            }
+            fbStatus(true);
+          })
+          .catch(() => fbStatus(false));
+      }, 20000);
+      setInterval(tick, 1000);
+      setInterval(poll, POLL_MS);
+      poll();
+    </script>
+  </body>
+</html>
