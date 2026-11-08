@@ -1567,7 +1567,10 @@
         dd.forEach((l, i) => {
           const n = l[iN],
             up = i > 0 ? gm[i - 1] : null;
-          AH[n] = i > 0 ? df(up, gm[i]) : "";
+          /* si le pilote devant vient de passer la ligne (tour d'avance), l'écart
+             n'est pas calculable : on garde l'intervalle précédent au lieu de "—" */
+          const ahNew = i > 0 ? df(up, gm[i]) : "";
+          AH[n] = ahNew || (i > 0 && AH[n]) || "";
           BH[n] = i < dd.length - 1 ? df(gm[i], gm[i + 1]) : "";
           const who = i > 0 ? dd[i - 1][iN] : "",
             g = i > 0 && up != null && gm[i] != null ? gm[i] - up : null,
@@ -2627,6 +2630,7 @@
       function resetRace() {
         H = {};
         BL = {};
+        AH = {};
         AR = {};
         IV = {};
         mv = {};
