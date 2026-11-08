@@ -1377,6 +1377,7 @@
         H = {},
         BL = {},
         AH = {},
+        AL = {},
         IV = {},
         BH = {},
         FIRE = {},
@@ -1557,6 +1558,7 @@
         prev = seen;
         setTimeout(rows, 12200);
         const dd = j.Donnees,
+          iNT = ix("NbTour"),
           iG = ix("Ecart1er"),
           gm = dd.map((l) => {
             const g = String(l[iG]).replace(/\{meilleur-temps[^}]*\}/g, "");
@@ -1567,10 +1569,26 @@
         dd.forEach((l, i) => {
           const n = l[iN],
             up = i > 0 ? gm[i - 1] : null;
-          /* si le pilote devant vient de passer la ligne (tour d'avance), l'écart
-             n'est pas calculable : on garde l'intervalle précédent au lieu de "—" */
-          const ahNew = i > 0 ? df(up, gm[i]) : "";
-          AH[n] = ahNew || (i > 0 && AH[n]) || "";
+          /* l'intervalle d'un pilote ne change que quand LUI passe la ligne :
+             quand le leader (ou un autre) passe, les autres gardent le leur */
+          const lapN = +l[iNT];
+          if (i === 0) {
+            AH[n] = "";
+            AL[n] = lapN;
+          } else if (AL[n] !== lapN || !AH[n]) {
+            let v = "";
+            const gN = ((H[n] && H[n].gap) || []).find((q) => q.n === lapN),
+              gU = (
+                (H[dd[i - 1][iN]] && H[dd[i - 1][iN]].gap) ||
+                []
+              ).find((q) => q.n === lapN);
+            if (gN && gU) v = df(gU.g, gN.g);
+            if (!v) v = df(up, gm[i]);
+            if (v) {
+              AH[n] = v;
+              AL[n] = lapN;
+            }
+          }
           BH[n] = i < dd.length - 1 ? df(gm[i], gm[i + 1]) : "";
           const who = i > 0 ? dd[i - 1][iN] : "",
             g = i > 0 && up != null && gm[i] != null ? gm[i] - up : null,
@@ -2631,6 +2649,7 @@
         H = {};
         BL = {};
         AH = {};
+        AL = {};
         AR = {};
         IV = {};
         mv = {};
